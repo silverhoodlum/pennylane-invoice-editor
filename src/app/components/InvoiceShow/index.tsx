@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router'
 
 import { useApi } from 'api'
-import { Invoice } from 'types'
+import { Invoice, Product } from 'types'
 
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
@@ -11,11 +11,23 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Table from 'react-bootstrap/Table'
 import { Stack } from 'react-bootstrap'
+import CustomerAutocomplete from '../CustomerAutocomplete'
+import ProductAutocomplete from '../ProductAutocomplete'
+import Modal from 'react-bootstrap/Modal'
 
 const InvoiceShow = () => {
   const { id } = useParams<{ id: string }>()
   const api = useApi()
   const [invoice, setInvoice] = useState<Invoice>()
+
+  const [product, setProduct] = useState<Product | null>(null)
+
+  const [show, setShow] = useState(false)
+
+  const handleClose = () => setShow(false)
+  const handleShow = () => setShow(true)
+
+  const [completeAddress, setCompleteAddress] = useState(false)
 
   useEffect(() => {
     api.getInvoice(id).then(({ data }) => {
@@ -25,23 +37,64 @@ const InvoiceShow = () => {
 
   return (
     <div>
+      <h2>Invoice: {id}</h2>
       <Form>
         <Form.Group className="mb-3" controlId="formCustomer">
           <Form.Label>Customer</Form.Label>
-          <Form.Control type="customer" placeholder="Customer" />
+          <Form.Control type="text" placeholder="Customer" />
           <Form.Text className="text-muted">
             We'll never share your email with anyone else.
           </Form.Text>
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formAddress">
-          <Form.Label>Adress</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            type="text"
-            placeholder="Address"
-          />
+          <Form.Label>Address</Form.Label>
+          {completeAddress && (
+            <Form.Control
+              as="textarea"
+              rows={3}
+              type="text"
+              placeholder="Address"
+            />
+          )}
+          <Stack>
+            <Button
+              variant="secondary"
+              className="ms-auto"
+              onClick={handleShow}
+            >
+              {completeAddress ? 'Edit' : 'Add'}
+            </Button>
+          </Stack>
+
+          <Modal show={show} onHide={handleClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Enter your address</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form.Group className="mb-3" controlId="formStreet">
+                <Form.Label>Street</Form.Label>
+                <Form.Control type="text" placeholder="street name" />
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="formCity">
+                <Form.Label>City</Form.Label>
+                <Form.Control type="text" placeholder="e.g. City" />
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="formCountry">
+                <Form.Label>Country</Form.Label>
+                <Form.Control type="text" placeholder="e.g. France" />
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="formCountryCode">
+                <Form.Label>Country Code</Form.Label>
+                <Form.Control type="text" placeholder="e.g. TU" />
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={handleClose}>
+                Update Address
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formDate">
@@ -54,17 +107,6 @@ const InvoiceShow = () => {
           <Form.Control type="date" />
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="formBasicCheckbox">
-          <Form.Check type="checkbox" label="Check me out" />
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="formCustomer">
-          <Form.Label>Customer</Form.Label>
-          <Form.Control type="customer" placeholder="Customer" />
-          <Form.Text className="text-muted">
-            We'll never share your email with anyone else.
-          </Form.Text>
-        </Form.Group>
         <div>
           <Table striped bordered hover>
             <thead>
@@ -80,22 +122,22 @@ const InvoiceShow = () => {
             <tbody>
               <tr>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <ProductAutocomplete value={product} onChange={setProduct} />
                 </td>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <Form.Control type="number" placeholder="0" />
                 </td>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <Form.Control type="text" placeholder="e. g. piece" />
                 </td>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <Form.Control type="number" placeholder="vat rate" />
                 </td>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <Form.Control type="number" placeholder="0" />
                 </td>
                 <td>
-                  <Form.Control type="text" placeholder="product" />
+                  <Form.Control type="number" placeholder="0" />
                 </td>
               </tr>
             </tbody>
@@ -111,9 +153,11 @@ const InvoiceShow = () => {
             Total: <span className="fs-5">20</span>
           </div>
         </Stack>
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
+        <Stack direction="horizontal">
+          <Button variant="primary" type="submit" className="mx-auto">
+            Submit
+          </Button>
+        </Stack>
       </Form>
       <pre>{JSON.stringify(invoice ?? '', null, 2)}</pre>
     </div>
