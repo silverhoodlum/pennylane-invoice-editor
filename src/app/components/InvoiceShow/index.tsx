@@ -20,6 +20,7 @@ const InvoiceShow = () => {
   const { id } = useParams<{ id: string }>()
   const api = useApi()
   const [invoice, setInvoice] = useState<Invoice>()
+  const [invoiceForm, setInvoiceForm] = useState({})
 
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
@@ -31,13 +32,19 @@ const InvoiceShow = () => {
 
   const [completeAddress, setCompleteAddress] = useState(false)
 
+  const setField = (field: any, value: any) => {
+    setInvoiceForm({ ...invoiceForm, [field]: value })
+  }
+
   useEffect(() => {
     api.getInvoice(id).then(({ data }) => {
       setInvoice(data)
       console.log(data)
-      console.log(`Customer: ${JSON.stringify(customer)}`)
+      const parsedData = JSON.parse(JSON.stringify(data))
+
+      setCustomer(parsedData.customer)
     })
-  }, [api, id, customer])
+  }, [api, id])
 
   return (
     <div>
@@ -45,13 +52,7 @@ const InvoiceShow = () => {
       <Form>
         <Form.Group className="mb-3" controlId="formCustomer">
           <Form.Label>Select a customer</Form.Label>
-          {/* <CustomerAutocomplete
-            value={FindCostumer(
-              invoice?.customer_id,
-              invoice?.customer?.first_name
-             | )}
-            onChange={setCustomer}
-          /> */}
+          <CustomerAutocomplete value={customer} onChange={setCustomer} />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formAddress">
@@ -114,6 +115,12 @@ const InvoiceShow = () => {
           <Form.Control type="date" />
         </Form.Group>
 
+        <Form.Group className="mb-3" controlId="formPaid">
+          <Form.Check type="checkbox" label="Paid" />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="formFinalized">
+          <Form.Check type="checkbox" label="Finalized" />
+        </Form.Group>
         <div>
           <Table striped bordered hover>
             <thead>
