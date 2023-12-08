@@ -11,7 +11,7 @@ const GettingStarted = () => {
 
   return (
     <>
-      <div className="alert alert-info mt-5 mb-3">
+      {/* <div className="alert alert-info mt-5 mb-3">
         <p>
           This is the initial application we've set up for you to start the
           project.
@@ -49,7 +49,7 @@ const GettingStarted = () => {
           <code>ProductAutocomplete</code> and <code>CustomerAutocomplete</code>{' '}
           that you can try out below.
         </p>
-      </div>
+      </div> */}
       <div className="mb-3">
         <CustomerAutocomplete value={customer} onChange={setCustomer} />
       </div>
