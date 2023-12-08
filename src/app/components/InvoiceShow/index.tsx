@@ -33,8 +33,10 @@ const InvoiceShow = () => {
   useEffect(() => {
     api.getInvoice(id).then(({ data }) => {
       setInvoice(data)
+      console.log(data)
+      console.log(`Customer: ${JSON.stringify(customer)}`)
     })
-  }, [api, id])
+  }, [api, id, customer])
 
   return (
     <div>
