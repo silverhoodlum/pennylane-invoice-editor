@@ -14,6 +14,7 @@ import { Stack } from 'react-bootstrap'
 import CustomerAutocomplete from '../CustomerAutocomplete'
 import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
+import FindCostumer from 'app/utils/find-customer'
 
 const InvoiceShow = () => {
   const { id } = useParams<{ id: string }>()
@@ -44,7 +45,13 @@ const InvoiceShow = () => {
       <Form>
         <Form.Group className="mb-3" controlId="formCustomer">
           <Form.Label>Select a customer</Form.Label>
-          <CustomerAutocomplete value={customer} onChange={setCustomer} />
+          {/* <CustomerAutocomplete
+            value={FindCostumer(
+              invoice?.customer_id,
+              invoice?.customer?.first_name
+             | )}
+            onChange={setCustomer}
+          /> */}
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formAddress">
