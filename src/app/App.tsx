@@ -8,7 +8,6 @@ import GettingStarted from './GettingStarted'
 function App() {
   return (
     <div className="px-5">
-      <GettingStarted />
       <Router>
         <Routes>
           <Route path="/invoice/:id" Component={InvoiceShow} />
