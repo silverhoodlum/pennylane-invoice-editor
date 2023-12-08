@@ -10,6 +10,7 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Table from 'react-bootstrap/Table'
+import { Stack } from 'react-bootstrap'
 
 const InvoiceShow = () => {
   const { id } = useParams<{ id: string }>()
@@ -64,44 +65,52 @@ const InvoiceShow = () => {
             We'll never share your email with anyone else.
           </Form.Text>
         </Form.Group>
-
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Unit</th>
-              <th>Vat Rate</th>
-              <th>Tax</th>
-              <th>Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-              <td>
-                <Form.Control type="text" placeholder="product" />
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-
-        <Button variant="primary">Add Line</Button>
-
+        <div>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Vat Rate</th>
+                <th>Tax</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+                <td>
+                  <Form.Control type="text" placeholder="product" />
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+          <Stack>
+            <Button variant="secondary" className="ms-auto">
+              Add Line
+            </Button>
+          </Stack>
+        </div>
+        <Stack direction="horizontal" className="mt-3">
+          <div className="ms-auto">
+            Total: <span className="fs-5">20</span>
+          </div>
+        </Stack>
         <Button variant="primary" type="submit">
           Submit
         </Button>
