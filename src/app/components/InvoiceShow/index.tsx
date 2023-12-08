@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router'
 
 import { useApi } from 'api'
-import { Invoice, Product } from 'types'
+import { Customer, Invoice, Product } from 'types'
 
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
@@ -20,6 +20,7 @@ const InvoiceShow = () => {
   const api = useApi()
   const [invoice, setInvoice] = useState<Invoice>()
 
+  const [customer, setCustomer] = useState<Customer | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
 
   const [show, setShow] = useState(false)
@@ -40,11 +41,8 @@ const InvoiceShow = () => {
       <h2>Invoice: {id}</h2>
       <Form>
         <Form.Group className="mb-3" controlId="formCustomer">
-          <Form.Label>Customer</Form.Label>
-          <Form.Control type="text" placeholder="Customer" />
-          <Form.Text className="text-muted">
-            We'll never share your email with anyone else.
-          </Form.Text>
+          <Form.Label>Select a customer</Form.Label>
+          <CustomerAutocomplete value={customer} onChange={setCustomer} />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formAddress">
