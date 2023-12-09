@@ -28,7 +28,9 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
 
-  const { register, handleSubmit } = useForm({ defaultValues: invoice })
+  const { register, handleSubmit, setValue } = useForm({
+    defaultValues: invoice,
+  })
 
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
@@ -39,6 +41,12 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     console.log(data)
   }
 
+  const handleCustomerChange = (e: Customer | null) => {
+    setCustomer(e)
+    if (e) {
+      setValue('customer', e)
+    }
+  }
   useEffect(() => {
     invoice?.customer && setCustomer(invoice.customer)
 
@@ -57,7 +65,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
         <CustomerAutocomplete
           value={customer}
           {...register('customer')}
-          onChange={setCustomer}
+          onChange={handleCustomerChange}
         />
       </Form.Group>
 
