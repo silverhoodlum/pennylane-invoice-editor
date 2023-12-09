@@ -188,6 +188,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
                     <Form.Control
                       type="number"
                       placeholder="vat rate"
+                      step="any"
                       {...register(`invoice_lines.${index}.vat_rate`)}
                     />
                   </td>
@@ -195,6 +196,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
                     <Form.Control
                       type="number"
                       placeholder="0"
+                      step="any"
                       {...register(`invoice_lines.${index}.tax`)}
                     />
                   </td>
@@ -202,6 +204,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
                     <Form.Control
                       type="number"
                       placeholder="0"
+                      step="any"
                       {...register(`invoice_lines.${index}.price`)}
                     />
                   </td>
