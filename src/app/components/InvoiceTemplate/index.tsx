@@ -21,14 +21,16 @@ interface InvoiceTemplateProps {
 const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   const existingInvoice = invoice ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [product, setProduct] = useState<Product | null>(null)
+  const [product, setProduct] = useState<(Product | null)[]>([])
 
   const [show, setShow] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
 
-  const { register, handleSubmit } = useForm({ defaultValues: invoice })
+  const { register, handleSubmit, setValue } = useForm({
+    defaultValues: invoice,
+  })
 
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
@@ -39,16 +41,43 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     console.log(data)
   }
 
+  interface customerSelectProps {
+    e: any
+    updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
+    name: 'customer'
+  }
+
+  const handleChange = ({
+    e,
+    updateStateCustomer,
+    name,
+  }: customerSelectProps) => {
+    updateStateCustomer(e)
+
+    if (e) {
+      setValue(name, e)
+    }
+  }
   useEffect(() => {
     invoice?.customer && setCustomer(invoice.customer)
-
     if (existingInvoice) {
+      /* Address complete */
       setFullAddress(
         `${invoice?.customer?.address} ${invoice?.customer?.city} ${invoice?.customer?.country} ${invoice?.customer?.country_code}`
       )
       setCompleteAddress(true)
+
+      /* Invoice lines display */
+      invoice?.invoice_lines.forEach((line) =>
+        setProduct((prev) => [...prev, line.product])
+      )
     }
   }, [])
+
+  useEffect(() => {
+    console.log('Customer:')
+    console.log(customer)
+  })
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -57,7 +86,13 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
         <CustomerAutocomplete
           value={customer}
           {...register('customer')}
-          onChange={setCustomer}
+          onChange={(e) =>
+            handleChange({
+              e,
+              updateStateCustomer: setCustomer,
+              name: 'customer',
+            })
+          }
         />
       </Form.Group>
 
@@ -165,9 +200,9 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
                 <tr>
                   <td>
                     <ProductAutocomplete
-                      value={invoice.invoice_lines[index].product}
-                      {...register(`invoice_lines.${index}.quantity`)}
-                      onChange={setProduct}
+                      value={product[index]}
+                      {...register(`invoice_lines.${index}.product`)}
+                      onChange={(e) => setProduct((prev) => prev)}
                     />
                   </td>
                   <td>

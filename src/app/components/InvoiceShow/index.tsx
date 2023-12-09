@@ -21,24 +21,13 @@ const InvoiceShow = () => {
   const { id } = useParams<{ id: string }>()
   const api = useApi()
   const [invoice, setInvoice] = useState<Invoice>()
-  const [invoiceForm, setInvoiceForm] = useState({})
-
-  const [customer, setCustomer] = useState<Customer | null>(null)
-  const [product, setProduct] = useState<Product | null>(null)
 
   const [show, setShow] = useState(false)
-
-  const handleClose = () => setShow(false)
-  const handleShow = () => setShow(true)
-
-  const [completeAddress, setCompleteAddress] = useState(false)
 
   useEffect(() => {
     api.getInvoice(id).then(({ data }) => {
       setInvoice(JSON.parse(JSON.stringify(data)))
-      console.log(invoice?.customer)
-      const parsedData = JSON.parse(JSON.stringify(data))
-      console.log(parsedData.customer)
+
       // setCustomer(parsedData.customer)
     })
   }, [api, id])
