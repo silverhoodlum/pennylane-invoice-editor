@@ -59,8 +59,9 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     }
   }
   useEffect(() => {
-    invoice?.customer && setCustomer(invoice.customer)
     if (existingInvoice) {
+      invoice?.customer && setCustomer(invoice.customer)
+
       /* Address complete */
       setFullAddress(
         `${invoice?.customer?.address} ${invoice?.customer?.city} ${invoice?.customer?.country} ${invoice?.customer?.country_code}`
@@ -77,7 +78,10 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   useEffect(() => {
     console.log('Customer:')
     console.log(customer)
-  })
+    setFullAddress(
+      `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
+    )
+  }, [customer])
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -194,8 +198,6 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
           </thead>
           <tbody>
             {invoice?.invoice_lines.map((invoiceLine, index) => {
-              console.log(typeof index)
-
               return (
                 <tr>
                   <td>
