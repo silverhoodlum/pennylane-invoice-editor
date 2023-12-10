@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ChangeEvent } from 'react'
 import { useParams } from 'react-router'
 
 import { useApi } from 'api'
@@ -14,6 +14,7 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { update } from 'lodash'
+import priceBreakdown from 'app/utils/price-breadown'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice
@@ -35,7 +36,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
 
-  const { register, handleSubmit, setValue } = useForm({
+  const { register, handleSubmit, setValue, getValues } = useForm({
     defaultValues: invoiceExisting,
   })
 
@@ -70,8 +71,21 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
 
     if (invoice?.invoice_lines && e?.vat_rate) {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
+        const { line_price, line_tax } = priceBreakdown(
+          e.unit_price,
+          e.vat_rate,
+          line.quantity
+        )
         return i === index
-          ? { ...line, product: e, vat_rate: e?.vat_rate }
+          ? {
+              ...line,
+              product: e,
+              vat_rate: e?.vat_rate,
+              unit: e?.unit,
+              label: e?.label,
+              price: line_price,
+              tax: line_tax,
+            }
           : line
       })
       console.log('------------')
@@ -79,6 +93,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       console.log('------------')
       setInvoice({ ...invoice, invoice_lines: updatedLines })
 
+      /* update form field */
       if (e) {
         setValue('invoice_lines', updatedLines)
       }
@@ -89,6 +104,23 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setValue(`invoice_lines.${index}.product`, e)
     }
   }
+
+  const handleQuantityChange = (e: React.BaseSyntheticEvent, index: number) => {
+    console.log(e.target.value)
+
+    if (invoice?.invoice_lines) {
+      const updatedLines = invoice.invoice_lines.map((line, i) => {
+        return i === index
+          ? {
+              ...line,
+              quantity: Number(e.target.value),
+            }
+          : line
+      })
+      setInvoice({ ...invoice, invoice_lines: updatedLines })
+    }
+  }
+
   useEffect(() => {
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
@@ -103,9 +135,6 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       invoiceExisting && setInvoice(invoiceExisting)
       invoiceExisting &&
         setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
-      // invoice?.invoices.forEach((line) =>
-      //   setProduct((prev) => [...prev].push(line.product))
-      // )
     }
   }, [])
 
@@ -251,6 +280,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         type="number"
                         placeholder="0"
                         {...register(`invoice_lines.${index}.quantity`)}
+                        onChange={(e) => handleQuantityChange(e, index)}
                       />
                     </td>
                     <td>
@@ -273,6 +303,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         type="number"
                         placeholder="0"
                         step="any"
+                        disabled
                         {...register(`invoice_lines.${index}.tax`)}
                       />
                     </td>
@@ -281,6 +312,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         type="number"
                         placeholder="0"
                         step="any"
+                        disabled
                         {...register(`invoice_lines.${index}.price`)}
                       />
                     </td>
