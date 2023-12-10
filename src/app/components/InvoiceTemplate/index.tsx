@@ -34,7 +34,8 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<Invoice>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
-  const [totalPrice, setTotalPrice] = useState<string | null | undefined>(null)
+
+  const api = useApi()
 
   const [show, setShow] = useState(false)
 
@@ -49,9 +50,15 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [fullAddress, setFullAddress] = useState<string>()
 
   previousInvoice && console.log(invoiceExisting)
+
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
+
     console.log(data)
+
+    api.putInvoice(invoice?.id, data).then(({ data }) => {
+      console.log(data)
+    })
   }
 
   const handleChangeCustomer = ({
@@ -193,8 +200,6 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       invoiceExisting && setInvoice(invoiceExisting)
       invoiceExisting &&
         setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
-
-      setTotalPrice(invoiceExisting?.total)
     }
   }, [])
 
@@ -428,7 +433,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       </Stack>
       <Stack direction="horizontal">
         <Button variant="primary" type="submit" className="mx-auto">
-          Submit
+          Update
         </Button>
       </Stack>
     </Form>
