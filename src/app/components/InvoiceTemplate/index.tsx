@@ -13,6 +13,7 @@ import CustomerAutocomplete from '../CustomerAutocomplete'
 import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
+import { update } from 'lodash'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice
@@ -60,12 +61,30 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   }
 
   const handleChangeProduct = (e: Product | null, index: number) => {
+    /* update product in product array */
     setProducts(
       products.map((product, i) => {
         return i === index ? e : product
       })
     )
 
+    if (invoice?.invoice_lines && e?.vat_rate) {
+      const updatedLines = invoice.invoice_lines.map((line, i) => {
+        return i === index
+          ? { ...line, product: e, vat_rate: e?.vat_rate }
+          : line
+      })
+      console.log('------------')
+      console.log(updatedLines)
+      console.log('------------')
+      setInvoice({ ...invoice, invoice_lines: updatedLines })
+
+      if (e) {
+        setValue('invoice_lines', updatedLines)
+      }
+    }
+
+    /* update form in product array */
     if (e) {
       setValue(`invoice_lines.${index}.product`, e)
     }
