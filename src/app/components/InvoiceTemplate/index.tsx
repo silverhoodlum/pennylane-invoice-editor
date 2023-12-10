@@ -13,7 +13,7 @@ import CustomerAutocomplete from '../CustomerAutocomplete'
 import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
-import { update } from 'lodash'
+
 import priceBreakdown from 'app/utils/price-breadown'
 
 interface InvoiceTemplateProps {
@@ -105,19 +105,31 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     }
   }
 
-  const handleQuantityChange = (e: React.BaseSyntheticEvent, index: number) => {
-    console.log(e.target.value)
-
+  const handleQuantityChange = (
+    e: React.BaseSyntheticEvent,
+    index: number,
+    name: 'quantity' | 'vat_rate'
+  ) => {
     if (invoice?.invoice_lines) {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
+        const { line_price, line_tax } = priceBreakdown(
+          line.product.unit_price,
+          name === 'quantity' ? line.vat_rate : e.target.value,
+          name === 'quantity' ? e.target.value : line.quantity
+        )
+
         return i === index
           ? {
               ...line,
-              quantity: Number(e.target.value),
+              [name]: Number(e.target.value),
+              tax: line_tax,
+              price: line_price,
             }
           : line
       })
       setInvoice({ ...invoice, invoice_lines: updatedLines })
+
+      setValue('invoice_lines', updatedLines)
     }
   }
 
@@ -280,15 +292,26 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         type="number"
                         placeholder="0"
                         {...register(`invoice_lines.${index}.quantity`)}
-                        onChange={(e) => handleQuantityChange(e, index)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'quantity')
+                        }
                       />
                     </td>
                     <td>
-                      <Form.Control
+                      {/* <Form.Control
                         type="text"
                         placeholder="e. g. piece"
+                        
+                      /> */}
+                      <Form.Select
+                        aria-label="Default select example"
+                        placeholder="e. g. piece"
                         {...register(`invoice_lines.${index}.unit`)}
-                      />
+                      >
+                        <option value="piece">Piece</option>
+                        <option value="hour">Hour</option>
+                        <option value="day">Day</option>
+                      </Form.Select>
                     </td>
                     <td>
                       <Form.Control
@@ -296,6 +319,9 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         placeholder="vat rate"
                         step="any"
                         {...register(`invoice_lines.${index}.vat_rate`)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'vat_rate')
+                        }
                       />
                     </td>
                     <td>
