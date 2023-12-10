@@ -32,6 +32,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<Invoice>()
+  const [finalized, setFinalized] = useState<boolean | undefined>(false)
 
   const [show, setShow] = useState(false)
 
@@ -166,6 +167,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     }
   }
 
+  const handleFinalized = (e: React.BaseSyntheticEvent) => {
+    setFinalized(e.target.checked)
+    setValue('finalized', e.target.checked)
+  }
+
   useEffect(() => {
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
@@ -209,6 +215,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
               name: 'customer',
             })
           }
+          disabled={finalized}
         />
       </Form.Group>
 
@@ -225,7 +232,12 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           />
         )}
         <Stack>
-          <Button variant="secondary" className="ms-auto" onClick={handleShow}>
+          <Button
+            variant="secondary"
+            className="ms-auto"
+            onClick={handleShow}
+            disabled={finalized}
+          >
             {completeAddress ? 'Edit' : 'Add'}
           </Button>
         </Stack>
@@ -278,12 +290,16 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
 
       <Form.Group className="mb-3" controlId="formDate">
         <Form.Label>Date</Form.Label>
-        <Form.Control type="date" {...register('date')} />
+        <Form.Control type="date" {...register('date')} disabled={finalized} />
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="formDeadline">
         <Form.Label>Deadline</Form.Label>
-        <Form.Control type="date" {...register('deadline')} />
+        <Form.Control
+          type="date"
+          {...register('deadline')}
+          disabled={finalized}
+        />
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="formPaid">
@@ -294,6 +310,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           type="checkbox"
           label="Finalized"
           {...register('finalized')}
+          onChange={handleFinalized}
         />
       </Form.Group>
       <div>
@@ -316,6 +333,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                     <td>
                       <ProductAutocomplete
                         value={products[index]}
+                        disabled={finalized}
                         {...register(`invoice_lines.${index}.product`)}
                         onChange={(e) => handleChangeProduct(e, index)}
                       />
@@ -324,6 +342,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                       <Form.Control
                         type="number"
                         placeholder="0"
+                        disabled={finalized}
                         {...register(`invoice_lines.${index}.quantity`)}
                         onChange={(e) =>
                           handleQuantityChange(e, index, 'quantity')
@@ -339,6 +358,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                       <Form.Select
                         aria-label="Default select example"
                         placeholder="e. g. piece"
+                        disabled={finalized}
                         {...register(`invoice_lines.${index}.unit`)}
                       >
                         <option value="piece">Piece</option>
@@ -351,6 +371,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         type="number"
                         placeholder="vat rate"
                         step="any"
+                        disabled={finalized}
                         {...register(`invoice_lines.${index}.vat_rate`)}
                         onChange={(e) =>
                           handleQuantityChange(e, index, 'vat_rate')
@@ -385,6 +406,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
             variant="secondary"
             className="ms-auto"
             onClick={addInvoiceLine}
+            disabled={finalized}
           >
             Add Line
           </Button>
