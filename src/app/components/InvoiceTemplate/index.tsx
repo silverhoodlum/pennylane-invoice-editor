@@ -17,6 +17,7 @@ import { FieldValues, useForm } from 'react-hook-form'
 import priceBreakdown from 'app/utils/price-breadown'
 import { InvoiceLine } from 'app/types/types'
 import _, { random } from 'lodash'
+import getTotalPrice from 'app/utils/total-price'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice
@@ -33,6 +34,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<Invoice>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
+  const [totalPrice, setTotalPrice] = useState<string | null | undefined>(null)
 
   const [show, setShow] = useState(false)
 
@@ -92,11 +94,12 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
             }
           : line
       })
-      console.log('------------')
-      console.log(updatedLines)
-      console.log('------------')
-      setInvoice({ ...invoice, invoice_lines: updatedLines })
 
+      setInvoice({
+        ...invoice,
+        invoice_lines: updatedLines,
+        total: getTotalPrice(updatedLines),
+      })
       /* update form field */
       if (e) {
         setValue('invoice_lines', updatedLines)
@@ -131,7 +134,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
             }
           : line
       })
-      setInvoice({ ...invoice, invoice_lines: updatedLines })
+      setInvoice({
+        ...invoice,
+        invoice_lines: updatedLines,
+        total: getTotalPrice(updatedLines),
+      })
 
       setValue('invoice_lines', updatedLines)
     }
@@ -186,6 +193,8 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       invoiceExisting && setInvoice(invoiceExisting)
       invoiceExisting &&
         setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
+
+      setTotalPrice(invoiceExisting?.total)
     }
   }, [])
 
@@ -414,7 +423,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       </div>
       <Stack direction="horizontal" className="mt-3">
         <div className="ms-auto">
-          Total: <span className="fs-5">20</span>
+          Total: <span className="fs-5">{invoice?.total}</span>
         </div>
       </Stack>
       <Stack direction="horizontal">
