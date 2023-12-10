@@ -15,7 +15,7 @@ import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 
 interface InvoiceTemplateProps {
-  invoice?: Invoice
+  invoiceExisting?: Invoice
 }
 interface customerSelectProps {
   e: Customer | null
@@ -23,10 +23,11 @@ interface customerSelectProps {
   name: 'customer'
 }
 
-const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
-  const existingInvoice = invoice ? true : false
+const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
+  const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [product, setProduct] = useState<(Product | null)[]>([])
+  const [products, setProducts] = useState<(Product | null)[]>([])
+  const [invoice, setInvoice] = useState<Invoice>()
 
   const [show, setShow] = useState(false)
 
@@ -34,13 +35,13 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   const handleShow = () => setShow(true)
 
   const { register, handleSubmit, setValue } = useForm({
-    defaultValues: invoice,
+    defaultValues: invoiceExisting,
   })
 
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
 
-  existingInvoice && console.log(invoice)
+  previousInvoice && console.log(invoiceExisting)
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
     console.log(data)
@@ -59,26 +60,33 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   }
 
   const handleChangeProduct = (e: Product | null, index: number) => {
-    setProduct(
-      product.map((product, i) => {
+    setProducts(
+      products.map((product, i) => {
         return i === index ? e : product
       })
     )
+
+    if (e) {
+      setValue(`invoice_lines.${index}.product`, e)
+    }
   }
   useEffect(() => {
-    if (existingInvoice) {
-      invoice?.customer && setCustomer(invoice.customer)
+    if (previousInvoice) {
+      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
 
       /* Address complete */
       setFullAddress(
-        `${invoice?.customer?.address} ${invoice?.customer?.city} ${invoice?.customer?.country} ${invoice?.customer?.country_code}`
+        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
       )
       setCompleteAddress(true)
 
       /* Invoice lines display */
-      invoice?.invoice_lines.forEach((line) =>
-        setProduct((prev) => [...prev, line.product])
-      )
+      invoiceExisting && setInvoice(invoiceExisting)
+      invoiceExisting &&
+        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
+      // invoice?.invoices.forEach((line) =>
+      //   setProduct((prev) => [...prev].push(line.product))
+      // )
     }
   }, [])
 
@@ -91,8 +99,8 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   }, [customer])
 
   useEffect(() => {
-    console.log(product)
-  }, [product])
+    console.log(products)
+  }, [products])
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -208,57 +216,58 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
             </tr>
           </thead>
           <tbody>
-            {product.map((invoiceLine, index) => {
-              return (
-                <tr>
-                  <td>
-                    <ProductAutocomplete
-                      value={product[index]}
-                      {...register(`invoice_lines.${index}.product`)}
-                      onChange={(e) => handleChangeProduct(e, index)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      {...register(`invoice_lines.${index}.quantity`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="text"
-                      placeholder="e. g. piece"
-                      {...register(`invoice_lines.${index}.unit`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="vat rate"
-                      step="any"
-                      {...register(`invoice_lines.${index}.vat_rate`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      step="any"
-                      {...register(`invoice_lines.${index}.tax`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      step="any"
-                      {...register(`invoice_lines.${index}.price`)}
-                    />
-                  </td>
-                </tr>
-              )
-            })}
+            {invoice &&
+              invoice.invoice_lines.map((invoiceLine, index) => {
+                return (
+                  <tr>
+                    <td>
+                      <ProductAutocomplete
+                        value={products[index]}
+                        {...register(`invoice_lines.${index}.product`)}
+                        onChange={(e) => handleChangeProduct(e, index)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        {...register(`invoice_lines.${index}.quantity`)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="text"
+                        placeholder="e. g. piece"
+                        {...register(`invoice_lines.${index}.unit`)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="vat rate"
+                        step="any"
+                        {...register(`invoice_lines.${index}.vat_rate`)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        step="any"
+                        {...register(`invoice_lines.${index}.tax`)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        step="any"
+                        {...register(`invoice_lines.${index}.price`)}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
           </tbody>
         </Table>
         <Stack>
