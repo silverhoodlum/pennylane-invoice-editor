@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ChangeEvent } from 'react'
 import { useParams } from 'react-router'
 
 import { useApi } from 'api'
@@ -14,40 +14,42 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 
+import priceBreakdown from 'app/utils/price-breadown'
+
 interface InvoiceTemplateProps {
-  invoice?: Invoice
+  invoiceExisting?: Invoice
+}
+interface customerSelectProps {
+  e: Customer | null
+  updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
+  name: 'customer'
 }
 
-const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
-  const existingInvoice = invoice ? true : false
+const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
+  const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [product, setProduct] = useState<(Product | null)[]>([])
+  const [products, setProducts] = useState<(Product | null)[]>([])
+  const [invoice, setInvoice] = useState<Invoice>()
 
   const [show, setShow] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
 
-  const { register, handleSubmit, setValue } = useForm({
-    defaultValues: invoice,
+  const { register, handleSubmit, setValue, getValues } = useForm({
+    defaultValues: invoiceExisting,
   })
 
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
 
-  existingInvoice && console.log(invoice)
+  previousInvoice && console.log(invoiceExisting)
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
     console.log(data)
   }
 
-  interface customerSelectProps {
-    e: any
-    updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
-    name: 'customer'
-  }
-
-  const handleChange = ({
+  const handleChangeCustomer = ({
     e,
     updateStateCustomer,
     name,
@@ -58,20 +60,93 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
       setValue(name, e)
     }
   }
+
+  const handleChangeProduct = (e: Product | null, index: number) => {
+    /* update product in product array */
+    setProducts(
+      products.map((product, i) => {
+        return i === index ? e : product
+      })
+    )
+
+    if (invoice?.invoice_lines && e?.vat_rate) {
+      const updatedLines = invoice.invoice_lines.map((line, i) => {
+        const { line_price, line_tax } = priceBreakdown(
+          e.unit_price,
+          e.vat_rate,
+          line.quantity
+        )
+        return i === index
+          ? {
+              ...line,
+              product: e,
+              vat_rate: e?.vat_rate,
+              unit: e?.unit,
+              label: e?.label,
+              price: line_price,
+              tax: line_tax,
+            }
+          : line
+      })
+      console.log('------------')
+      console.log(updatedLines)
+      console.log('------------')
+      setInvoice({ ...invoice, invoice_lines: updatedLines })
+
+      /* update form field */
+      if (e) {
+        setValue('invoice_lines', updatedLines)
+      }
+    }
+
+    /* update form in product array */
+    if (e) {
+      setValue(`invoice_lines.${index}.product`, e)
+    }
+  }
+
+  const handleQuantityChange = (
+    e: React.BaseSyntheticEvent,
+    index: number,
+    name: 'quantity' | 'vat_rate'
+  ) => {
+    if (invoice?.invoice_lines) {
+      const updatedLines = invoice.invoice_lines.map((line, i) => {
+        const { line_price, line_tax } = priceBreakdown(
+          line.product.unit_price,
+          name === 'quantity' ? line.vat_rate : e.target.value,
+          name === 'quantity' ? e.target.value : line.quantity
+        )
+
+        return i === index
+          ? {
+              ...line,
+              [name]: Number(e.target.value),
+              tax: line_tax,
+              price: line_price,
+            }
+          : line
+      })
+      setInvoice({ ...invoice, invoice_lines: updatedLines })
+
+      setValue('invoice_lines', updatedLines)
+    }
+  }
+
   useEffect(() => {
-    if (existingInvoice) {
-      invoice?.customer && setCustomer(invoice.customer)
+    if (previousInvoice) {
+      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
 
       /* Address complete */
       setFullAddress(
-        `${invoice?.customer?.address} ${invoice?.customer?.city} ${invoice?.customer?.country} ${invoice?.customer?.country_code}`
+        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
       )
       setCompleteAddress(true)
 
       /* Invoice lines display */
-      invoice?.invoice_lines.forEach((line) =>
-        setProduct((prev) => [...prev, line.product])
-      )
+      invoiceExisting && setInvoice(invoiceExisting)
+      invoiceExisting &&
+        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
     }
   }, [])
 
@@ -83,6 +158,10 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     )
   }, [customer])
 
+  useEffect(() => {
+    console.log(products)
+  }, [products])
+
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <Form.Group className="mb-3" controlId="formCustomer">
@@ -91,7 +170,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
           value={customer}
           {...register('customer')}
           onChange={(e) =>
-            handleChange({
+            handleChangeCustomer({
               e,
               updateStateCustomer: setCustomer,
               name: 'customer',
@@ -197,57 +276,75 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
             </tr>
           </thead>
           <tbody>
-            {invoice?.invoice_lines.map((invoiceLine, index) => {
-              return (
-                <tr>
-                  <td>
-                    <ProductAutocomplete
-                      value={product[index]}
-                      {...register(`invoice_lines.${index}.product`)}
-                      onChange={(e) => setProduct((prev) => prev)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      {...register(`invoice_lines.${index}.quantity`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="text"
-                      placeholder="e. g. piece"
-                      {...register(`invoice_lines.${index}.unit`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="vat rate"
-                      step="any"
-                      {...register(`invoice_lines.${index}.vat_rate`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      step="any"
-                      {...register(`invoice_lines.${index}.tax`)}
-                    />
-                  </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      placeholder="0"
-                      step="any"
-                      {...register(`invoice_lines.${index}.price`)}
-                    />
-                  </td>
-                </tr>
-              )
-            })}
+            {invoice &&
+              invoice.invoice_lines.map((invoiceLine, index) => {
+                return (
+                  <tr>
+                    <td>
+                      <ProductAutocomplete
+                        value={products[index]}
+                        {...register(`invoice_lines.${index}.product`)}
+                        onChange={(e) => handleChangeProduct(e, index)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        {...register(`invoice_lines.${index}.quantity`)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'quantity')
+                        }
+                      />
+                    </td>
+                    <td>
+                      {/* <Form.Control
+                        type="text"
+                        placeholder="e. g. piece"
+                        
+                      /> */}
+                      <Form.Select
+                        aria-label="Default select example"
+                        placeholder="e. g. piece"
+                        {...register(`invoice_lines.${index}.unit`)}
+                      >
+                        <option value="piece">Piece</option>
+                        <option value="hour">Hour</option>
+                        <option value="day">Day</option>
+                      </Form.Select>
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="vat rate"
+                        step="any"
+                        {...register(`invoice_lines.${index}.vat_rate`)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'vat_rate')
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        step="any"
+                        disabled
+                        {...register(`invoice_lines.${index}.tax`)}
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        placeholder="0"
+                        step="any"
+                        disabled
+                        {...register(`invoice_lines.${index}.price`)}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
           </tbody>
         </Table>
         <Stack>
