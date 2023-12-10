@@ -15,6 +15,8 @@ import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 
 import priceBreakdown from 'app/utils/price-breadown'
+import { InvoiceLine } from 'app/types/types'
+import _, { random } from 'lodash'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice
@@ -80,6 +82,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           ? {
               ...line,
               product: e,
+              product_id: e?.id,
               vat_rate: e?.vat_rate,
               unit: e?.unit,
               label: e?.label,
@@ -130,6 +133,36 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setInvoice({ ...invoice, invoice_lines: updatedLines })
 
       setValue('invoice_lines', updatedLines)
+    }
+  }
+
+  const addInvoiceLine = () => {
+    if (invoice) {
+      const emptyInvoiceLine: InvoiceLine = {
+        id: _.random(19300, 19500),
+        invoice_id: invoice.id,
+        product: {
+          id: 0,
+          label: 'Select model',
+          unit: 'piece',
+          unit_price: '0',
+          unit_price_without_tax: '0',
+          unit_tax: '0',
+          vat_rate: '0',
+        },
+        product_id: 0,
+        price: '0',
+        tax: '0',
+        quantity: 0,
+        unit: 'piece',
+        vat_rate: '0',
+        label: '',
+      }
+      if (invoice?.invoice_lines) {
+        const updatedLines = [...invoice?.invoice_lines]
+        updatedLines.push(emptyInvoiceLine)
+        setInvoice({ ...invoice, invoice_lines: updatedLines })
+      }
     }
   }
 
@@ -348,7 +381,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           </tbody>
         </Table>
         <Stack>
-          <Button variant="secondary" className="ms-auto">
+          <Button
+            variant="secondary"
+            className="ms-auto"
+            onClick={addInvoiceLine}
+          >
             Add Line
           </Button>
         </Stack>
