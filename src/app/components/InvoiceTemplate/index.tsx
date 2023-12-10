@@ -18,6 +18,7 @@ import priceBreakdown from 'app/utils/price-breadown'
 import { InvoiceLine } from 'app/types/types'
 import _, { random } from 'lodash'
 import getTotalPrice from 'app/utils/total-price'
+import formatInvoice from 'app/utils/formatInvoice'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice
@@ -34,6 +35,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<Invoice>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
+  const [update, setUpdated] = useState(false)
 
   const api = useApi()
 
@@ -49,15 +51,102 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
 
-  previousInvoice && console.log(invoiceExisting)
+  useEffect(() => {
+    if (previousInvoice) {
+      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
+
+      /* Address complete */
+      setFullAddress(
+        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
+      )
+      setCompleteAddress(true)
+
+      /* Invoice lines display */
+      invoiceExisting && setInvoice(invoiceExisting)
+      invoiceExisting &&
+        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
+    }
+  }, [])
+
+  useEffect(() => {
+    console.log('Customer:')
+    console.log(customer)
+    setFullAddress(
+      `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
+    )
+  }, [customer])
+
+  useEffect(() => {
+    console.log(products)
+  }, [products])
 
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
 
-    console.log(data)
+    console.log(formatInvoice(data))
 
-    api.putInvoice(invoice?.id, data).then(({ data }) => {
+    enum Unit {
+      piece = 'piece',
+      hour = 'hour',
+      day = 'day',
+    }
+
+    enum VatRate {
+      zero = '0',
+      five = '5.5',
+      ten = '10',
+      twenty = '20',
+    }
+
+    const _data = {
+      invoice: {
+        id: 10240,
+        customer_id: 296,
+        finalized: false,
+        paid: false,
+        date: '2021-12-13',
+        deadline: '2022-04-18',
+        total: '175700.0',
+        tax: '15972.73',
+        customer: {
+          id: 296,
+          first_name: 'Maxwell',
+          last_name: 'Nienow',
+          address: '34113 Echo Ramp',
+          zip_code: '83851-1133',
+          city: 'Merrileeton',
+          country: 'Thailand',
+          country_code: 'TH',
+        },
+        invoice_lines_attributes: [
+          {
+            id: 19267,
+            invoice_id: 10240,
+            product_id: 18,
+            quantity: 9,
+            unit: Unit.piece,
+            label: 'Ford Focus',
+            vat_rate: VatRate.twenty,
+            price: '17500.0',
+            tax: '35140',
+            _destroy: false,
+            product: {
+              id: 18,
+              label: 'Ford Focus',
+              vat_rate: '10',
+              unit: 'piece',
+              unit_price: '25100.0',
+              unit_price_without_tax: '22818.18',
+              unit_tax: '2281.82',
+            },
+          },
+        ],
+      },
+    }
+
+    api.putInvoice(invoice?.id, _data).then(({ data }) => {
       console.log(data)
+      setUpdated((prev) => !prev)
     })
   }
 
@@ -185,35 +274,6 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     setFinalized(e.target.checked)
     setValue('finalized', e.target.checked)
   }
-
-  useEffect(() => {
-    if (previousInvoice) {
-      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
-
-      /* Address complete */
-      setFullAddress(
-        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
-      )
-      setCompleteAddress(true)
-
-      /* Invoice lines display */
-      invoiceExisting && setInvoice(invoiceExisting)
-      invoiceExisting &&
-        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
-    }
-  }, [])
-
-  useEffect(() => {
-    console.log('Customer:')
-    console.log(customer)
-    setFullAddress(
-      `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
-    )
-  }, [customer])
-
-  useEffect(() => {
-    console.log(products)
-  }, [products])
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
