@@ -17,6 +17,11 @@ import { FieldValues, useForm } from 'react-hook-form'
 interface InvoiceTemplateProps {
   invoice?: Invoice
 }
+interface customerSelectProps {
+  e: Customer | null
+  updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
+  name: 'customer'
+}
 
 const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
   const existingInvoice = invoice ? true : false
@@ -41,13 +46,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     console.log(data)
   }
 
-  interface customerSelectProps {
-    e: any
-    updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
-    name: 'customer'
-  }
-
-  const handleChange = ({
+  const handleChangeCustomer = ({
     e,
     updateStateCustomer,
     name,
@@ -57,6 +56,14 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     if (e) {
       setValue(name, e)
     }
+  }
+
+  const handleChangeProduct = (e: Product | null, index: number) => {
+    setProduct(
+      product.map((product, i) => {
+        return i === index ? e : product
+      })
+    )
   }
   useEffect(() => {
     if (existingInvoice) {
@@ -83,6 +90,10 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
     )
   }, [customer])
 
+  useEffect(() => {
+    console.log(product)
+  }, [product])
+
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <Form.Group className="mb-3" controlId="formCustomer">
@@ -91,7 +102,7 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
           value={customer}
           {...register('customer')}
           onChange={(e) =>
-            handleChange({
+            handleChangeCustomer({
               e,
               updateStateCustomer: setCustomer,
               name: 'customer',
@@ -197,14 +208,14 @@ const InvoiceTemplate = ({ invoice }: InvoiceTemplateProps) => {
             </tr>
           </thead>
           <tbody>
-            {invoice?.invoice_lines.map((invoiceLine, index) => {
+            {product.map((invoiceLine, index) => {
               return (
                 <tr>
                   <td>
                     <ProductAutocomplete
                       value={product[index]}
                       {...register(`invoice_lines.${index}.product`)}
-                      onChange={(e) => setProduct((prev) => prev)}
+                      onChange={(e) => handleChangeProduct(e, index)}
                     />
                   </td>
                   <td>
