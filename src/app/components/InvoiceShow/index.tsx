@@ -44,7 +44,6 @@ const InvoiceShow = () => {
       ) : (
         <div>Loading</div>
       )}
-      <pre>{JSON.stringify(invoice ?? '', null, 2)}</pre>
     </div>
   )
 }
