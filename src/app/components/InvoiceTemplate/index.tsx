@@ -524,6 +524,7 @@ const InvoiceTemplate = ({
                     <td>
                       <FontAwesomeIcon
                         icon={faTrash}
+                        role="button"
                         onClick={() => deleteLine(index)}
                       />
                     </td>
