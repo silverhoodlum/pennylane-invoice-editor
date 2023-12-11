@@ -14,7 +14,7 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import priceBreakdown from 'app/utils/price-breadown'
 import {
@@ -30,6 +30,8 @@ import {
   formatInvoiceUpdate,
 } from 'app/utils/formatInvoice'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
+
+import './invoice-template.styles.css'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -52,14 +54,18 @@ const InvoiceTemplate = ({
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
-  const [update, setUpdated] = useState(false)
+  const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
 
   const api = useApi()
 
   const [show, setShow] = useState(false)
+  const [showDel, setShowDel] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
+
+  const handleCloseDel = () => setShowDel(false)
+  const handleDel = () => setShowDel(true)
 
   const { register, handleSubmit, setValue, getValues } = useForm({
     defaultValues: invoiceExisting,
@@ -320,11 +326,11 @@ const InvoiceTemplate = ({
   }
 
   const handleDeleteInvoice = () => {
-    alert('invoice.id')
     invoice &&
       api.deleteInvoice(invoice.id).then(({ data }) => {
         console.log(data)
-        navigate(`/`)
+        setInvoiceDeleted(true)
+        // navigate(`/`)
       })
   }
   return (
@@ -351,7 +357,7 @@ const InvoiceTemplate = ({
             disabled
           />
         )}
-        <Stack>
+        <Stack className="mt-1">
           <Button
             variant="secondary"
             className="ms-auto"
@@ -407,21 +413,25 @@ const InvoiceTemplate = ({
           </Modal.Footer>
         </Modal>
       </Form.Group>
+      <Stack direction="horizontal">
+        <Form.Group className="mb-3" controlId="formDate">
+          <Form.Label>Date</Form.Label>
+          <Form.Control
+            type="date"
+            {...register('date')}
+            disabled={finalized}
+          />
+        </Form.Group>
 
-      <Form.Group className="mb-3" controlId="formDate">
-        <Form.Label>Date</Form.Label>
-        <Form.Control type="date" {...register('date')} disabled={finalized} />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="formDeadline">
-        <Form.Label>Deadline</Form.Label>
-        <Form.Control
-          type="date"
-          {...register('deadline')}
-          disabled={finalized}
-        />
-      </Form.Group>
-
+        <Form.Group className="mb-3 ms-5" controlId="formDeadline">
+          <Form.Label>Deadline</Form.Label>
+          <Form.Control
+            type="date"
+            {...register('deadline')}
+            disabled={finalized}
+          />
+        </Form.Group>
+      </Stack>
       <Form.Group className="mb-3" controlId="formPaid">
         <Form.Check type="checkbox" label="Paid" {...register('paid')} />
       </Form.Group>
@@ -459,7 +469,7 @@ const InvoiceTemplate = ({
                         onChange={(e) => handleChangeProduct(e, index)}
                       />
                     </td>
-                    <td>
+                    <td style={{ width: '10%' }}>
                       <Form.Control
                         type="number"
                         placeholder="0"
@@ -471,11 +481,6 @@ const InvoiceTemplate = ({
                       />
                     </td>
                     <td>
-                      {/* <Form.Control
-                        type="text"
-                        placeholder="e. g. piece"
-                        
-                      /> */}
                       <Form.Select
                         aria-label="Default select example"
                         placeholder="e. g. piece"
@@ -522,11 +527,13 @@ const InvoiceTemplate = ({
                       />
                     </td>
                     <td>
-                      <FontAwesomeIcon
-                        icon={faTrash}
-                        role="button"
-                        onClick={() => deleteLine(index)}
-                      />
+                      <Button variant="secondary" disabled={finalized}>
+                        <FontAwesomeIcon
+                          icon={faTrash}
+                          role="button"
+                          onClick={() => deleteLine(index)}
+                        />
+                      </Button>
                     </td>
                   </tr>
                 )
@@ -535,7 +542,7 @@ const InvoiceTemplate = ({
         </Table>
         <Stack>
           <Button
-            variant="secondary"
+            variant="dark"
             className="ms-auto"
             onClick={addInvoiceLine}
             disabled={finalized}
@@ -572,7 +579,36 @@ const InvoiceTemplate = ({
       </Stack>
       <Stack direction="horizontal">
         <div className="me-auto">
-          <Button variant="danger" onClick={handleDeleteInvoice}>
+          <Modal show={showDel} onHide={handleCloseDel}>
+            {!invoiceDeleted ? (
+              <div>
+                <Modal.Header closeButton>
+                  <Modal.Title>Enter your address</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  Are you sure you want to delete this invoice
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="danger" onClick={handleDeleteInvoice}>
+                    Delete
+                  </Button>
+                  <Button variant="primary" onClick={handleCloseDel}>
+                    Cancel
+                  </Button>
+                </Modal.Footer>
+              </div>
+            ) : (
+              <div>
+                <Modal.Body>Invoice has been deleted correctly</Modal.Body>
+                <Modal.Footer>
+                  <Link to="/">
+                    <Button>Back to Homepage</Button>
+                  </Link>
+                </Modal.Footer>
+              </div>
+            )}
+          </Modal>
+          <Button variant="danger" onClick={handleDel}>
             Delete
           </Button>
         </div>
