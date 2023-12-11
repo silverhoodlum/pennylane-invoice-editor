@@ -1,11 +1,14 @@
 import React from 'react'
 
-const priceBreakdown = (unit_price: string, vat: string, quantity: number) => {
+const priceBreakdown = (
+  unit_price: string,
+  unit_tax: string,
+  quantity: number
+) => {
   const totalPrice = Number(unit_price) * quantity
-  const vatPercentage = Number(vat) / 100
   return {
     line_price: String(totalPrice),
-    line_tax: String(totalPrice * vatPercentage),
+    line_tax: String(Number(unit_tax) * quantity),
   }
 }
 

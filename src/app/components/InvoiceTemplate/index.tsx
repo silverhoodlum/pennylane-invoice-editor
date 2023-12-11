@@ -15,14 +15,19 @@ import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 
 import priceBreakdown from 'app/utils/price-breadown'
-import { InvoiceLine } from 'app/types/types'
+import {
+  InvoiceD,
+  InvoiceLineCreatePayload,
+  InvoiceLineD,
+} from 'app/types/types'
 import _, { random } from 'lodash'
 import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
 import formatInvoice from 'app/utils/formatInvoice'
+import formatInvoiceUpdate from 'app/utils/formatInvoice'
 
 interface InvoiceTemplateProps {
-  invoiceExisting?: Invoice
+  invoiceExisting?: Invoice | InvoiceD
 }
 interface customerSelectProps {
   e: Customer | null
@@ -34,7 +39,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [products, setProducts] = useState<(Product | null)[]>([])
-  const [invoice, setInvoice] = useState<Invoice>()
+  const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
   const [update, setUpdated] = useState(false)
 
@@ -53,6 +58,8 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [fullAddress, setFullAddress] = useState<string>()
 
   useEffect(() => {
+    console.log(invoiceExisting)
+    /* Initial load */
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
 
@@ -63,9 +70,20 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setCompleteAddress(true)
 
       /* Invoice lines display */
-      invoiceExisting && setInvoice(invoiceExisting)
       invoiceExisting &&
-        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
+        setInvoice({
+          ...invoiceExisting,
+          invoice_lines: invoiceExisting.invoice_lines.map((line) => ({
+            ...line,
+            _destroy: false,
+          })),
+        })
+      invoiceExisting &&
+        setProducts(
+          invoiceExisting?.invoice_lines.map((line) =>
+            line.product ? line.product : null
+          )
+        )
     }
   }, [])
 
@@ -84,7 +102,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
 
-    console.log(formatInvoice(data))
+    console.log(formatInvoiceUpdate(data))
 
     enum Unit {
       piece = 'piece',
@@ -176,7 +194,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
           e.unit_price,
-          e.vat_rate,
+          e.unit_tax,
           line.quantity
         )
         return i === index
@@ -221,8 +239,8 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     if (invoice?.invoice_lines) {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
-          line.product.unit_price,
-          name === 'quantity' ? line.vat_rate : e.target.value,
+          line.product ? line.product.unit_price : '0',
+          line.product?.unit_tax ? line.product?.unit_tax : '0',
           name === 'quantity' ? e.target.value : line.quantity
         )
 
@@ -250,18 +268,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
 
   const addInvoiceLine = () => {
     if (invoice) {
-      const emptyInvoiceLine: InvoiceLine = {
-        id: _.random(19300, 19500),
-        invoice_id: invoice.id,
-        product: {
-          id: 0,
-          label: 'Select model',
-          unit: 'piece',
-          unit_price: '0',
-          unit_price_without_tax: '0',
-          unit_tax: '0',
-          vat_rate: '0',
-        },
+      const emptyInvoiceLine: InvoiceLineD = {
         product_id: 0,
         price: '0',
         tax: '0',

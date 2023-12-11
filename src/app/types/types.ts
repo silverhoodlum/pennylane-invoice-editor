@@ -1,21 +1,108 @@
 import { Product } from 'types'
 
-export interface InvoiceLine {
-  /**
-   * example:
-   * 9181
-   */
-  id: number
+export interface InvoiceD {
   /**
    * example:
    * 5785
    */
-  invoice_id: number
+  id: number
+  /**
+   * example:
+   * 6773
+   */
+  customer_id: number | null
+  /**
+   * example:
+   * false
+   */
+  customer?: CustomerD
+  finalized: boolean
+  /**
+   * example:
+   * true
+   */
+  paid: boolean
+  /**
+   * example:
+   * 2021-02-03
+   */
+  date: string | null
+  /**
+   * example:
+   * 2021-03-05
+   */
+  deadline: string | null
+  /**
+   * example:
+   * 120.00
+   */
+  total: string | null
+  /**
+   * example:
+   * 20.00
+   */
+  tax: string | null
+  invoice_lines: InvoiceLineD[]
+}
+
+export interface CustomerD {
+  /**
+   * example:
+   * 6773
+   */
+  id: number
+  /**
+   * example:
+   * Jean
+   */
+  first_name: string
+  /**
+   * example:
+   * Dupont
+   */
+  last_name: string
+  /**
+   * example:
+   * 9 impasse Sauvey
+   */
+  address: string
+  /**
+   * example:
+   * 50100
+   */
+  zip_code: string
+  /**
+   * example:
+   * Cherbourg
+   */
+  city: string
+  /**
+   * example:
+   * France
+   */
+  country: string
+  /**
+   * example:
+   * FR
+   */
+  country_code: string
+}
+export interface InvoiceLineD {
+  /**
+   * example:
+   * 9181
+   */
+  id?: number
+  /**
+   * example:
+   * 5785
+   */
+  invoice_id?: number
   /**
    * example:
    * 67
    */
-  product_id: number
+  product_id?: number
   /**
    * example:
    * 1
@@ -38,7 +125,42 @@ export interface InvoiceLine {
    * 20.00
    */
   tax: string
-  product: Product
+  product?: Product
+}
+
+export interface InvoiceUpdatePayload {
+  /**
+   * example:
+   * 6757
+   */
+  id: number
+  /**
+   * example:
+   * 6773
+   */
+  customer_id?: number | null
+  /**
+   * example:
+   * false
+   */
+  finalized?: boolean
+  /**
+   * example:
+   * true
+   */
+  paid?: boolean
+  /**
+   * example:
+   * 2021-02-03
+   */
+  date?: string | null
+  /**
+   * example:
+   * 2021-03-05
+   */
+  deadline?: string | null
+  invoice_lines?: InvoiceLineUpdatePayload[]
+  invoice_lines_attributes?: InvoiceLineUpdatePayload[] | InvoiceLineD[]
 }
 
 export interface InvoiceLineUpdatePayload {
@@ -84,39 +206,35 @@ export interface InvoiceLineUpdatePayload {
    */
   tax?: string | number
 }
-export interface InvoiceUpdatePayload {
+
+export interface InvoiceLineCreatePayload {
   /**
    * example:
-   * 6757
+   * 67
    */
-  id: number
+  product_id: number
   /**
    * example:
-   * 6773
+   * 1
    */
-  customer_id?: number | null
+  quantity?: number
   /**
    * example:
-   * false
+   * Tesla Model S with Pennylane logo
    */
-  finalized?: boolean
+  label?: string
+  unit?: Unit
+  vat_rate?: VatRate
   /**
    * example:
-   * true
+   * 120.00
    */
-  paid?: boolean
+  price?: string | number
   /**
    * example:
-   * 2021-02-03
+   * 20.00
    */
-  date?: string | null
-  /**
-   * example:
-   * 2021-03-05
-   */
-  deadline?: string | null
-  invoice_lines?: InvoiceLineUpdatePayload[]
-  invoice_lines_attributes?: InvoiceLineUpdatePayload[]
+  tax?: string | number
 }
 
 export type Unit = 'hour' | 'day' | 'piece'
