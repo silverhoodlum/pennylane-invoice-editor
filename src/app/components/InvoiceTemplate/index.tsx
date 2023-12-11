@@ -15,12 +15,19 @@ import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 
 import priceBreakdown from 'app/utils/price-breadown'
-import { InvoiceLine } from 'app/types/types'
+import {
+  InvoiceD,
+  InvoiceLineCreatePayload,
+  InvoiceLineD,
+} from 'app/types/types'
 import _, { random } from 'lodash'
+import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
+import formatInvoice from 'app/utils/formatInvoice'
+import formatInvoiceUpdate from 'app/utils/formatInvoice'
 
 interface InvoiceTemplateProps {
-  invoiceExisting?: Invoice
+  invoiceExisting?: Invoice | InvoiceD
 }
 interface customerSelectProps {
   e: Customer | null
@@ -32,9 +39,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [products, setProducts] = useState<(Product | null)[]>([])
-  const [invoice, setInvoice] = useState<Invoice>()
+  const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
-  const [totalPrice, setTotalPrice] = useState<string | null | undefined>(null)
+  const [update, setUpdated] = useState(false)
+
+  const api = useApi()
 
   const [show, setShow] = useState(false)
 
@@ -48,10 +57,117 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
 
-  previousInvoice && console.log(invoiceExisting)
+  useEffect(() => {
+    console.log(invoiceExisting)
+    /* Initial load */
+    if (previousInvoice) {
+      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
+
+      /* Address complete */
+      setFullAddress(
+        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
+      )
+      setCompleteAddress(true)
+
+      /* Invoice lines display */
+      invoiceExisting &&
+        setInvoice({
+          ...invoiceExisting,
+          invoice_lines: invoiceExisting.invoice_lines.map((line) => ({
+            ...line,
+            _destroy: false,
+          })),
+        })
+      invoiceExisting &&
+        setProducts(
+          invoiceExisting?.invoice_lines.map((line) =>
+            line.product ? line.product : null
+          )
+        )
+    }
+  }, [])
+
+  useEffect(() => {
+    console.log('Customer:')
+    console.log(customer)
+    setFullAddress(
+      `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
+    )
+  }, [customer])
+
+  useEffect(() => {
+    console.log(products)
+  }, [products])
+
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
-    console.log(data)
+
+    console.log(formatInvoiceUpdate(data))
+
+    enum Unit {
+      piece = 'piece',
+      hour = 'hour',
+      day = 'day',
+    }
+
+    enum VatRate {
+      zero = '0',
+      five = '5.5',
+      ten = '10',
+      twenty = '20',
+    }
+
+    const _data = {
+      invoice: {
+        id: 10240,
+        customer_id: 296,
+        finalized: false,
+        paid: false,
+        date: '2021-12-13',
+        deadline: '2022-04-18',
+        total: '175700.0',
+        tax: '15972.73',
+        customer: {
+          id: 296,
+          first_name: 'Maxwell',
+          last_name: 'Nienow',
+          address: '34113 Echo Ramp',
+          zip_code: '83851-1133',
+          city: 'Merrileeton',
+          country: 'Thailand',
+          country_code: 'TH',
+        },
+        invoice_lines_attributes: [
+          {
+            id: 19267,
+            invoice_id: 10240,
+            product_id: 18,
+            quantity: 9,
+            unit: Unit.piece,
+            label: 'Ford Focus',
+            vat_rate: VatRate.twenty,
+            price: '17500.0',
+            tax: '35140',
+            _destroy: false,
+            product: {
+              id: 18,
+              label: 'Ford Focus',
+              vat_rate: '10',
+              unit: 'piece',
+              unit_price: '25100.0',
+              unit_price_without_tax: '22818.18',
+              unit_tax: '2281.82',
+            },
+          },
+        ],
+      },
+    }
+    console.log('_data')
+    console.log(_data)
+
+    api.putInvoice(invoice?.id, formatInvoice(data)).then(({ data }) => {
+      console.log(data)
+    })
   }
 
   const handleChangeCustomer = ({
@@ -78,7 +194,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
           e.unit_price,
-          e.vat_rate,
+          line.vat_rate,
           line.quantity
         )
         return i === index
@@ -98,11 +214,14 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setInvoice({
         ...invoice,
         invoice_lines: updatedLines,
-        total: getTotalPrice(updatedLines),
+        total: getTotalPrice(updatedLines, 'price'),
+        tax: getTotalPrice(updatedLines, 'tax'),
       })
       /* update form field */
       if (e) {
         setValue('invoice_lines', updatedLines)
+        setValue('total', getTotalPrice(updatedLines, 'price'))
+        setValue('tax', getTotalPrice(updatedLines, 'tax'))
       }
     }
 
@@ -120,7 +239,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     if (invoice?.invoice_lines) {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
-          line.product.unit_price,
+          line.product ? line.product.unit_price : '0',
           name === 'quantity' ? line.vat_rate : e.target.value,
           name === 'quantity' ? e.target.value : line.quantity
         )
@@ -137,27 +256,19 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setInvoice({
         ...invoice,
         invoice_lines: updatedLines,
-        total: getTotalPrice(updatedLines),
+        total: getTotalPrice(updatedLines, 'price'),
+        tax: getTotalPrice(updatedLines, 'tax'),
       })
 
       setValue('invoice_lines', updatedLines)
+      setValue('total', getTotalPrice(updatedLines, 'price'))
+      setValue('tax', getTotalPrice(updatedLines, 'tax'))
     }
   }
 
   const addInvoiceLine = () => {
     if (invoice) {
-      const emptyInvoiceLine: InvoiceLine = {
-        id: _.random(19300, 19500),
-        invoice_id: invoice.id,
-        product: {
-          id: 0,
-          label: 'Select model',
-          unit: 'piece',
-          unit_price: '0',
-          unit_price_without_tax: '0',
-          unit_tax: '0',
-          vat_rate: '0',
-        },
+      const emptyInvoiceLine: InvoiceLineD = {
         product_id: 0,
         price: '0',
         tax: '0',
@@ -178,37 +289,6 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     setFinalized(e.target.checked)
     setValue('finalized', e.target.checked)
   }
-
-  useEffect(() => {
-    if (previousInvoice) {
-      invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
-
-      /* Address complete */
-      setFullAddress(
-        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
-      )
-      setCompleteAddress(true)
-
-      /* Invoice lines display */
-      invoiceExisting && setInvoice(invoiceExisting)
-      invoiceExisting &&
-        setProducts(invoiceExisting?.invoice_lines.map((line) => line.product))
-
-      setTotalPrice(invoiceExisting?.total)
-    }
-  }, [])
-
-  useEffect(() => {
-    console.log('Customer:')
-    console.log(customer)
-    setFullAddress(
-      `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
-    )
-  }, [customer])
-
-  useEffect(() => {
-    console.log(products)
-  }, [products])
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -370,13 +450,13 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         disabled={finalized}
                         {...register(`invoice_lines.${index}.unit`)}
                       >
-                        <option value="piece">Piece</option>
-                        <option value="hour">Hour</option>
-                        <option value="day">Day</option>
+                        <option value={Unit.piece}>Piece</option>
+                        <option value={Unit.hour}>Hour</option>
+                        <option value={Unit.day}>Day</option>
                       </Form.Select>
                     </td>
                     <td>
-                      <Form.Control
+                      {/* <Form.Control
                         type="number"
                         placeholder="vat rate"
                         step="any"
@@ -385,7 +465,21 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         onChange={(e) =>
                           handleQuantityChange(e, index, 'vat_rate')
                         }
-                      />
+                      /> */}
+                      <Form.Select
+                        aria-label="Select vat rate"
+                        placeholder="e. g. piece"
+                        disabled={finalized}
+                        {...register(`invoice_lines.${index}.vat_rate`)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'vat_rate')
+                        }
+                      >
+                        <option value={VatRate.zero}>0</option>
+                        <option value={VatRate.five}>5.5</option>
+                        <option value={VatRate.ten}>10</option>
+                        <option value={VatRate.twenty}>20</option>
+                      </Form.Select>
                     </td>
                     <td>
                       <Form.Control
@@ -421,14 +515,18 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           </Button>
         </Stack>
       </div>
-      <Stack direction="horizontal" className="mt-3">
+      <Stack direction="vertical" className="mt-3">
         <div className="ms-auto">
-          Total: <span className="fs-5">{invoice?.total}</span>
+          Total:{' '}
+          <span className="fs-2">{Number(invoice?.total).toFixed(2)}</span>
+        </div>
+        <div className="ms-auto">
+          Tax: <span className="fs-5">{Number(invoice?.tax).toFixed(2)}</span>
         </div>
       </Stack>
       <Stack direction="horizontal">
         <Button variant="primary" type="submit" className="mx-auto">
-          Submit
+          Update
         </Button>
       </Stack>
     </Form>

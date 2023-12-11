@@ -1,11 +1,25 @@
 import React from 'react'
 
-const priceBreakdown = (unit_price: string, vat: string, quantity: number) => {
+interface vatCalcProps {
+  [key: string]: number
+}
+
+const priceBreakdown = (
+  unit_price: string,
+  vat_rate: string,
+  quantity: number
+) => {
   const totalPrice = Number(unit_price) * quantity
-  const vatPercentage = Number(vat) / 100
+
+  const vatCalc: vatCalcProps = {
+    '0': 0,
+    '5.5': 0.0521326,
+    '10': 0.0909091,
+    '20': 0.1666666,
+  }
   return {
     line_price: String(totalPrice),
-    line_tax: String(totalPrice * vatPercentage),
+    line_tax: String((totalPrice * vatCalc[vat_rate]).toFixed(2)),
   }
 }
 
