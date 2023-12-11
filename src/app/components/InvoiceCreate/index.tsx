@@ -19,9 +19,9 @@ const InvoiceCreate = () => {
 
   return (
     <div>
-      <h2>Invoice: {id}</h2>
+      <h2>Create Invoice: {id}</h2>
 
-      <InvoiceTemplate />
+      <InvoiceTemplate btnLabel="Create Invoice" />
     </div>
   )
 }

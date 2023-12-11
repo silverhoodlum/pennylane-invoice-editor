@@ -36,7 +36,7 @@ const InvoiceShow = () => {
     <div>
       <h2>Invoice: {id}</h2>
       {invoice ? (
-        <InvoiceTemplate invoiceExisting={invoice} />
+        <InvoiceTemplate invoiceExisting={invoice} btnLabel="Update Invoice" />
       ) : (
         <div>Loading</div>
       )}

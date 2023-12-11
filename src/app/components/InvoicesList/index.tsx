@@ -2,6 +2,8 @@ import { useApi } from 'api'
 import { Invoice } from 'types'
 import { useEffect, useCallback, useState } from 'react'
 import GettingStarted from 'app/GettingStarted'
+import { Link } from 'react-router-dom'
+import { Button } from 'react-bootstrap'
 
 const InvoicesList = (): React.ReactElement => {
   const api = useApi()
@@ -21,6 +23,9 @@ const InvoicesList = (): React.ReactElement => {
   return (
     <>
       <GettingStarted />
+      <Link to="/create">
+        <Button>Create Invoice</Button>
+      </Link>
       <table className="table table-bordered table-striped">
         <thead>
           <tr>
