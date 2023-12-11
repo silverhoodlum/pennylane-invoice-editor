@@ -17,6 +17,7 @@ import { FieldValues, useForm } from 'react-hook-form'
 import priceBreakdown from 'app/utils/price-breadown'
 import { InvoiceLine } from 'app/types/types'
 import _, { random } from 'lodash'
+import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
 import formatInvoice from 'app/utils/formatInvoice'
 
@@ -143,10 +144,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
         ],
       },
     }
+    console.log('_data')
+    console.log(_data)
 
-    api.putInvoice(invoice?.id, _data).then(({ data }) => {
+    api.putInvoice(invoice?.id, formatInvoice(data)).then(({ data }) => {
       console.log(data)
-      setUpdated((prev) => !prev)
     })
   }
 
@@ -194,11 +196,14 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setInvoice({
         ...invoice,
         invoice_lines: updatedLines,
-        total: getTotalPrice(updatedLines),
+        total: getTotalPrice(updatedLines, 'price'),
+        tax: getTotalPrice(updatedLines, 'tax'),
       })
       /* update form field */
       if (e) {
         setValue('invoice_lines', updatedLines)
+        setValue('total', getTotalPrice(updatedLines, 'price'))
+        setValue('tax', getTotalPrice(updatedLines, 'tax'))
       }
     }
 
@@ -233,10 +238,13 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       setInvoice({
         ...invoice,
         invoice_lines: updatedLines,
-        total: getTotalPrice(updatedLines),
+        total: getTotalPrice(updatedLines, 'price'),
+        tax: getTotalPrice(updatedLines, 'tax'),
       })
 
       setValue('invoice_lines', updatedLines)
+      setValue('total', getTotalPrice(updatedLines, 'price'))
+      setValue('tax', getTotalPrice(updatedLines, 'tax'))
     }
   }
 
@@ -435,13 +443,13 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         disabled={finalized}
                         {...register(`invoice_lines.${index}.unit`)}
                       >
-                        <option value="piece">Piece</option>
-                        <option value="hour">Hour</option>
-                        <option value="day">Day</option>
+                        <option value={Unit.piece}>Piece</option>
+                        <option value={Unit.hour}>Hour</option>
+                        <option value={Unit.day}>Day</option>
                       </Form.Select>
                     </td>
                     <td>
-                      <Form.Control
+                      {/* <Form.Control
                         type="number"
                         placeholder="vat rate"
                         step="any"
@@ -450,7 +458,21 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         onChange={(e) =>
                           handleQuantityChange(e, index, 'vat_rate')
                         }
-                      />
+                      /> */}
+                      <Form.Select
+                        aria-label="Select vat rate"
+                        placeholder="e. g. piece"
+                        disabled={finalized}
+                        {...register(`invoice_lines.${index}.vat_rate`)}
+                        onChange={(e) =>
+                          handleQuantityChange(e, index, 'vat_rate')
+                        }
+                      >
+                        <option value={VatRate.zero}>0</option>
+                        <option value={VatRate.five}>5.5</option>
+                        <option value={VatRate.ten}>10</option>
+                        <option value={VatRate.twenty}>20</option>
+                      </Form.Select>
                     </td>
                     <td>
                       <Form.Control
@@ -486,9 +508,12 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           </Button>
         </Stack>
       </div>
-      <Stack direction="horizontal" className="mt-3">
+      <Stack direction="vertical" className="mt-3">
         <div className="ms-auto">
-          Total: <span className="fs-5">{invoice?.total}</span>
+          Total: <span className="fs-2">{invoice?.total}</span>
+        </div>
+        <div className="ms-auto">
+          Tax: <span className="fs-5">{invoice?.tax}</span>
         </div>
       </Stack>
       <Stack direction="horizontal">

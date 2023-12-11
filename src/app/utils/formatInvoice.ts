@@ -4,12 +4,14 @@ import { FieldValues, useForm } from 'react-hook-form'
 
 const formatInvoice = (invoice: FieldValues) => {
   const formattedData: any = {
-    ...invoice,
-    invoice_lines_attributes: [...invoice.invoice_lines].map((line) => {
-      return { ...line, _destroyed: 'false' }
-    }),
+    invoice: {
+      ...invoice,
+      invoice_lines_attributes: [...invoice.invoice_lines].map((line) => {
+        return { ...line, _destroy: false }
+      }),
+    },
   }
-  delete formattedData.invoice_lines
+  delete formattedData.invoice.invoice_lines
 
   return formattedData
 }
