@@ -14,6 +14,7 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useNavigate } from 'react-router-dom'
 
 import priceBreakdown from 'app/utils/price-breadown'
 import {
@@ -66,6 +67,8 @@ const InvoiceTemplate = ({
 
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     console.log(invoiceExisting)
@@ -134,45 +137,45 @@ const InvoiceTemplate = ({
     //   twenty = '20',
     // }
 
-    const _data = {
-      invoice: {
-        customer_id: 296,
-        finalized: false,
-        paid: false,
-        date: '2021-12-13',
-        deadline: '2022-04-18',
-        customer: {
-          id: 296,
-          first_name: 'Maxwell',
-          last_name: 'Nienow',
-          address: '34113 Echo Ramp',
-          zip_code: '83851-1133',
-          city: 'Merrileeton',
-          country: 'Thailand',
-          country_code: 'TH',
-        },
-        invoice_lines_attributes: [
-          {
-            product_id: 18,
-            quantity: 9,
-            unit: Unit.piece,
-            label: 'Ford Focus',
-            vat_rate: VatRate.twenty,
-            price: '17500.0',
-            tax: '35140',
-            product: {
-              id: 18,
-              label: 'Ford Focus',
-              vat_rate: '10',
-              unit: 'piece',
-              unit_price: '25100.0',
-              unit_price_without_tax: '22818.18',
-              unit_tax: '2281.82',
-            },
-          },
-        ],
-      },
-    }
+    // const _data = {
+    //   invoice: {
+    //     customer_id: 296,
+    //     finalized: false,
+    //     paid: false,
+    //     date: '2021-12-13',
+    //     deadline: '2022-04-18',
+    //     customer: {
+    //       id: 296,
+    //       first_name: 'Maxwell',
+    //       last_name: 'Nienow',
+    //       address: '34113 Echo Ramp',
+    //       zip_code: '83851-1133',
+    //       city: 'Merrileeton',
+    //       country: 'Thailand',
+    //       country_code: 'TH',
+    //     },
+    //     invoice_lines_attributes: [
+    //       {
+    //         product_id: 18,
+    //         quantity: 9,
+    //         unit: Unit.piece,
+    //         label: 'Ford Focus',
+    //         vat_rate: VatRate.twenty,
+    //         price: '17500.0',
+    //         tax: '35140',
+    //         product: {
+    //           id: 18,
+    //           label: 'Ford Focus',
+    //           vat_rate: '10',
+    //           unit: 'piece',
+    //           unit_price: '25100.0',
+    //           unit_price_without_tax: '22818.18',
+    //           unit_tax: '2281.82',
+    //         },
+    //       },
+    //     ],
+    //   },
+    // }
     // console.log('_data')
     // console.log(_data)
     if (action === 'update') {
@@ -180,10 +183,12 @@ const InvoiceTemplate = ({
         .putInvoice(invoice?.id, formatInvoiceUpdate(data))
         .then(({ data }) => {
           console.log(data)
+          navigate(`/invoice/${data.id}`)
         })
     } else if (action === 'create') {
       api.postInvoices(null, formatInvoiceCreate(data)).then(({ data }) => {
         console.log(data)
+        navigate(`/invoice/${data.id}`)
       })
     }
   }
