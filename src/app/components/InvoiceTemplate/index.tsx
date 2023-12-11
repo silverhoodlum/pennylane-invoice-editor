@@ -14,7 +14,7 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import priceBreakdown from 'app/utils/price-breadown'
 import {
@@ -54,6 +54,7 @@ const InvoiceTemplate = ({
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
+  const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
 
   const api = useApi()
 
@@ -325,11 +326,11 @@ const InvoiceTemplate = ({
   }
 
   const handleDeleteInvoice = () => {
-    alert('invoice.id')
     invoice &&
       api.deleteInvoice(invoice.id).then(({ data }) => {
         console.log(data)
-        navigate(`/`)
+        setInvoiceDeleted(true)
+        // navigate(`/`)
       })
   }
   return (
@@ -579,20 +580,33 @@ const InvoiceTemplate = ({
       <Stack direction="horizontal">
         <div className="me-auto">
           <Modal show={showDel} onHide={handleCloseDel}>
-            <Modal.Header closeButton>
-              <Modal.Title>Enter your address</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              Are you sure you want to delete this invoice
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="danger" onClick={handleDeleteInvoice}>
-                Delete
-              </Button>
-              <Button variant="primary" onClick={handleCloseDel}>
-                Cancel
-              </Button>
-            </Modal.Footer>
+            {!invoiceDeleted ? (
+              <div>
+                <Modal.Header closeButton>
+                  <Modal.Title>Enter your address</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  Are you sure you want to delete this invoice
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="danger" onClick={handleDeleteInvoice}>
+                    Delete
+                  </Button>
+                  <Button variant="primary" onClick={handleCloseDel}>
+                    Cancel
+                  </Button>
+                </Modal.Footer>
+              </div>
+            ) : (
+              <div>
+                <Modal.Body>Invoice has been deleted correctly</Modal.Body>
+                <Modal.Footer>
+                  <Link to="/">
+                    <Button>Back to Homepage</Button>
+                  </Link>
+                </Modal.Footer>
+              </div>
+            )}
           </Modal>
           <Button variant="danger" onClick={handleDel}>
             Delete
