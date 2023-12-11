@@ -5,7 +5,7 @@ export interface InvoiceD {
    * example:
    * 5785
    */
-  id: number
+  id: number | null
   /**
    * example:
    * 6773

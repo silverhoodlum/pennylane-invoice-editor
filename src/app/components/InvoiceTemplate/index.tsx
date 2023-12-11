@@ -69,11 +69,13 @@ const InvoiceTemplate = ({
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
 
-      /* Address complete */
-      setFullAddress(
-        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
-      )
-      setCompleteAddress(true)
+      /* Fill Address if customer exists */
+      if (invoiceExisting && invoiceExisting.customer !== undefined) {
+        setFullAddress(
+          `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
+        )
+        setCompleteAddress(true)
+      }
 
       /* Invoice lines display */
       invoiceExisting &&
