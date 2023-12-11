@@ -1,6 +1,5 @@
 import { InvoiceUpdatePayload } from 'app/types/types'
-import { Invoice } from 'types'
-import { FieldValues, useForm } from 'react-hook-form'
+import { FieldValues } from 'react-hook-form'
 
 export const formatInvoiceUpdate = (invoice: FieldValues) => {
   const formattedData: any = {

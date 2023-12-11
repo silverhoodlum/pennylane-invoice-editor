@@ -58,9 +58,13 @@ const InvoiceTemplate = ({
   const api = useApi()
 
   const [show, setShow] = useState(false)
+  const [showDel, setShowDel] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
+
+  const handleCloseDel = () => setShowDel(false)
+  const handleDel = () => setShowDel(true)
 
   const { register, handleSubmit, setValue, getValues } = useForm({
     defaultValues: invoiceExisting,
@@ -574,7 +578,23 @@ const InvoiceTemplate = ({
       </Stack>
       <Stack direction="horizontal">
         <div className="me-auto">
-          <Button variant="danger" onClick={handleDeleteInvoice}>
+          <Modal show={showDel} onHide={handleCloseDel}>
+            <Modal.Header closeButton>
+              <Modal.Title>Enter your address</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Are you sure you want to delete this invoice
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="danger" onClick={handleDeleteInvoice}>
+                Delete
+              </Button>
+              <Button variant="primary" onClick={handleCloseDel}>
+                Cancel
+              </Button>
+            </Modal.Footer>
+          </Modal>
+          <Button variant="danger" onClick={handleDel}>
             Delete
           </Button>
         </div>
