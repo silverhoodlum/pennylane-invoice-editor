@@ -2,11 +2,12 @@ import { useApi } from 'api'
 import { Invoice } from 'types'
 import { useEffect, useCallback, useState } from 'react'
 import GettingStarted from 'app/GettingStarted'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from 'react-bootstrap'
 
 const InvoicesList = (): React.ReactElement => {
   const api = useApi()
+  const navigate = useNavigate()
 
   const [invoicesList, setInvoicesList] = useState<Invoice[]>([])
 
@@ -15,6 +16,10 @@ const InvoicesList = (): React.ReactElement => {
     setInvoicesList(data.invoices)
     console.log(data)
   }, [api])
+
+  const handleRowClick = (id: number) => {
+    navigate(`./invoice/${id}`)
+  }
 
   useEffect(() => {
     fetchInvoices()
@@ -42,8 +47,13 @@ const InvoicesList = (): React.ReactElement => {
         </thead>
         <tbody>
           {invoicesList.map((invoice) => (
-            <tr key={invoice.id}>
+            <tr
+              key={invoice.id}
+              onClick={() => handleRowClick(invoice.id)}
+              role="button"
+            >
               <td>{invoice.id}</td>
+
               <td>
                 {invoice.customer?.first_name} {invoice.customer?.last_name}
               </td>
