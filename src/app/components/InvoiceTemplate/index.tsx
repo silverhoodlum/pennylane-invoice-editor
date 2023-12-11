@@ -87,6 +87,8 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
             line.product ? line.product : null
           )
         )
+      /* In invoice is finalised, disable other inputs */
+      invoiceExisting?.finalized && setFinalized(true)
     }
   }, [])
 
