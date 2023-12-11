@@ -459,7 +459,7 @@ const InvoiceTemplate = ({
                         onChange={(e) => handleChangeProduct(e, index)}
                       />
                     </td>
-                    <td>
+                    <td style={{ width: '10%' }}>
                       <Form.Control
                         type="number"
                         placeholder="0"
