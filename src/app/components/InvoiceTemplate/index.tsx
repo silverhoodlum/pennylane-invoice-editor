@@ -194,7 +194,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
           e.unit_price,
-          e.unit_tax,
+          line.vat_rate,
           line.quantity
         )
         return i === index
@@ -240,7 +240,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
           line.product ? line.product.unit_price : '0',
-          line.product?.unit_tax ? line.product?.unit_tax : '0',
+          name === 'quantity' ? line.vat_rate : e.target.value,
           name === 'quantity' ? e.target.value : line.quantity
         )
 
@@ -517,10 +517,11 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       </div>
       <Stack direction="vertical" className="mt-3">
         <div className="ms-auto">
-          Total: <span className="fs-2">{invoice?.total}</span>
+          Total:{' '}
+          <span className="fs-2">{Number(invoice?.total).toFixed(2)}</span>
         </div>
         <div className="ms-auto">
-          Tax: <span className="fs-5">{invoice?.tax}</span>
+          Tax: <span className="fs-5">{Number(invoice?.tax).toFixed(2)}</span>
         </div>
       </Stack>
       <Stack direction="horizontal">
