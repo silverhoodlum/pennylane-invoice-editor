@@ -13,6 +13,7 @@ import CustomerAutocomplete from '../CustomerAutocomplete'
 import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 import priceBreakdown from 'app/utils/price-breadown'
 import {
@@ -25,6 +26,7 @@ import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
 import formatInvoice from 'app/utils/formatInvoice'
 import formatInvoiceUpdate from 'app/utils/formatInvoice'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -75,6 +77,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
           ...invoiceExisting,
           invoice_lines: invoiceExisting.invoice_lines.map((line) => ({
             ...line,
+            display: true,
             _destroy: false,
           })),
         })
@@ -290,6 +293,24 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
     setValue('finalized', e.target.checked)
   }
 
+  const deleteLine = (index: number) => {
+    if (invoice?.invoice_lines) {
+      // const updatedLinesRemote = invoice.invoice_lines.map((line, i) =>
+      //   index === i ? { ...line, _destroy: true } : line
+      // )
+
+      const updatedLinesLocal = invoice.invoice_lines.filter(
+        (line, i) => i !== index
+      )
+
+      setInvoice({ ...invoice, invoice_lines: updatedLinesLocal })
+
+      const formLines = getValues('invoice_lines').map((line, i) =>
+        index === i ? { ...line, _destroy: true } : line
+      )
+      setValue('invoice_lines', formLines)
+    }
+  }
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <Form.Group className="mb-3" controlId="formCustomer">
@@ -412,13 +433,14 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
               <th>Vat Rate</th>
               <th>Tax</th>
               <th>Price</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {invoice &&
               invoice.invoice_lines.map((invoiceLine, index) => {
                 return (
-                  <tr>
+                  <tr className={`invoice-line-${index}`}>
                     <td>
                       <ProductAutocomplete
                         value={products[index]}
@@ -497,6 +519,12 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
                         step="any"
                         disabled
                         {...register(`invoice_lines.${index}.price`)}
+                      />
+                    </td>
+                    <td>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        onClick={() => deleteLine(index)}
                       />
                     </td>
                   </tr>
