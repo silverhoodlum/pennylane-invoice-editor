@@ -24,13 +24,16 @@ import {
 import _, { random } from 'lodash'
 import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
-import formatInvoice from 'app/utils/formatInvoice'
-import formatInvoiceUpdate from 'app/utils/formatInvoice'
+import {
+  formatInvoiceCreate,
+  formatInvoiceUpdate,
+} from 'app/utils/formatInvoice'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
   btnLabel?: string
+  action: 'update' | 'create'
 }
 interface customerSelectProps {
   e: Customer | null
@@ -41,6 +44,7 @@ interface customerSelectProps {
 const InvoiceTemplate = ({
   invoiceExisting,
   btnLabel,
+  action,
 }: InvoiceTemplateProps) => {
   const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
@@ -113,7 +117,9 @@ const InvoiceTemplate = ({
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
     console.log(data)
-    // console.log(formatInvoiceUpdate(data))
+
+    console.log('Form Data Formatted: ')
+    console.log(formatInvoiceCreate(data))
 
     // enum Unit {
     //   piece = 'piece',
@@ -128,57 +134,58 @@ const InvoiceTemplate = ({
     //   twenty = '20',
     // }
 
-    // const _data = {
-    //   invoice: {
-    //     id: 10240,
-    //     customer_id: 296,
-    //     finalized: false,
-    //     paid: false,
-    //     date: '2021-12-13',
-    //     deadline: '2022-04-18',
-    //     total: '175700.0',
-    //     tax: '15972.73',
-    //     customer: {
-    //       id: 296,
-    //       first_name: 'Maxwell',
-    //       last_name: 'Nienow',
-    //       address: '34113 Echo Ramp',
-    //       zip_code: '83851-1133',
-    //       city: 'Merrileeton',
-    //       country: 'Thailand',
-    //       country_code: 'TH',
-    //     },
-    //     invoice_lines_attributes: [
-    //       {
-    //         id: 19267,
-    //         invoice_id: 10240,
-    //         product_id: 18,
-    //         quantity: 9,
-    //         unit: Unit.piece,
-    //         label: 'Ford Focus',
-    //         vat_rate: VatRate.twenty,
-    //         price: '17500.0',
-    //         tax: '35140',
-    //         _destroy: false,
-    //         product: {
-    //           id: 18,
-    //           label: 'Ford Focus',
-    //           vat_rate: '10',
-    //           unit: 'piece',
-    //           unit_price: '25100.0',
-    //           unit_price_without_tax: '22818.18',
-    //           unit_tax: '2281.82',
-    //         },
-    //       },
-    //     ],
-    //   },
-    // }
+    const _data = {
+      invoice: {
+        customer_id: 296,
+        finalized: false,
+        paid: false,
+        date: '2021-12-13',
+        deadline: '2022-04-18',
+        customer: {
+          id: 296,
+          first_name: 'Maxwell',
+          last_name: 'Nienow',
+          address: '34113 Echo Ramp',
+          zip_code: '83851-1133',
+          city: 'Merrileeton',
+          country: 'Thailand',
+          country_code: 'TH',
+        },
+        invoice_lines_attributes: [
+          {
+            product_id: 18,
+            quantity: 9,
+            unit: Unit.piece,
+            label: 'Ford Focus',
+            vat_rate: VatRate.twenty,
+            price: '17500.0',
+            tax: '35140',
+            product: {
+              id: 18,
+              label: 'Ford Focus',
+              vat_rate: '10',
+              unit: 'piece',
+              unit_price: '25100.0',
+              unit_price_without_tax: '22818.18',
+              unit_tax: '2281.82',
+            },
+          },
+        ],
+      },
+    }
     // console.log('_data')
     // console.log(_data)
-
-    api.putInvoice(invoice?.id, formatInvoice(data)).then(({ data }) => {
-      console.log(data)
-    })
+    if (action === 'update') {
+      api
+        .putInvoice(invoice?.id, formatInvoiceUpdate(data))
+        .then(({ data }) => {
+          console.log(data)
+        })
+    } else if (action === 'create') {
+      api.postInvoices(null, formatInvoiceCreate(data)).then(({ data }) => {
+        console.log(data)
+      })
+    }
   }
 
   const handleChangeCustomer = (e: Customer | null) => {
@@ -188,6 +195,8 @@ const InvoiceTemplate = ({
       setValue('customer', e)
       setFullAddress(`${e.address} ${e.city} ${e.country} ${e.country_code}`)
       setCompleteAddress(true)
+      invoice && setInvoice({ ...invoice, customer_id: e.id })
+      setValue('customer_id', e.id)
     }
   }
 

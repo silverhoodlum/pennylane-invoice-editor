@@ -36,6 +36,7 @@ const InvoiceCreate = () => {
       <InvoiceTemplate
         btnLabel="Create Invoice"
         invoiceExisting={blankInvoice}
+        action="create"
       />
     </div>
   )
