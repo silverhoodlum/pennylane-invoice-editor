@@ -2,7 +2,7 @@ import { InvoiceUpdatePayload } from 'app/types/types'
 import { Invoice } from 'types'
 import { FieldValues, useForm } from 'react-hook-form'
 
-const formatInvoiceUpdate = (invoice: FieldValues) => {
+export const formatInvoiceUpdate = (invoice: FieldValues) => {
   const formattedData: any = {
     invoice: {
       ...invoice,
@@ -16,4 +16,16 @@ const formatInvoiceUpdate = (invoice: FieldValues) => {
   return formattedData
 }
 
-export default formatInvoiceUpdate
+export const formatInvoiceCreate = (invoice: FieldValues) => {
+  const formattedData: any = {
+    invoice: {
+      ...invoice,
+      invoice_lines_attributes: [...invoice.invoice_lines],
+    },
+  }
+  delete formattedData.invoice.invoice_lines
+  delete formattedData.invoice.id
+  delete formattedData.invoice.total
+  delete formattedData.invoice.customer
+  return formattedData
+}

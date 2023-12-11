@@ -4,6 +4,7 @@ import InvoicesList from './components/InvoicesList'
 import InvoiceShow from './components/InvoiceShow'
 
 import GettingStarted from './GettingStarted'
+import InvoiceCreate from './components/InvoiceCreate'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/invoice/:id" Component={InvoiceShow} />
           <Route path="/" Component={InvoicesList} />
+          <Route path="/create" Component={InvoiceCreate} />
         </Routes>
       </Router>
     </div>

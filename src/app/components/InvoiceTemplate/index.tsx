@@ -14,6 +14,7 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useNavigate } from 'react-router-dom'
 
 import priceBreakdown from 'app/utils/price-breadown'
 import {
@@ -24,12 +25,16 @@ import {
 import _, { random } from 'lodash'
 import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
-import formatInvoice from 'app/utils/formatInvoice'
-import formatInvoiceUpdate from 'app/utils/formatInvoice'
+import {
+  formatInvoiceCreate,
+  formatInvoiceUpdate,
+} from 'app/utils/formatInvoice'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
+  btnLabel?: string
+  action: 'update' | 'create'
 }
 interface customerSelectProps {
   e: Customer | null
@@ -37,7 +42,11 @@ interface customerSelectProps {
   name: 'customer'
 }
 
-const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
+const InvoiceTemplate = ({
+  invoiceExisting,
+  btnLabel,
+  action,
+}: InvoiceTemplateProps) => {
   const previousInvoice = invoiceExisting ? true : false
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [products, setProducts] = useState<(Product | null)[]>([])
@@ -59,17 +68,21 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
   const [completeAddress, setCompleteAddress] = useState(false)
   const [fullAddress, setFullAddress] = useState<string>()
 
+  const navigate = useNavigate()
+
   useEffect(() => {
     console.log(invoiceExisting)
     /* Initial load */
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
 
-      /* Address complete */
-      setFullAddress(
-        `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
-      )
-      setCompleteAddress(true)
+      /* Fill Address if customer exists */
+      if (invoiceExisting && invoiceExisting.customer !== undefined) {
+        setFullAddress(
+          `${invoiceExisting?.customer?.address} ${invoiceExisting?.customer?.city} ${invoiceExisting?.customer?.country} ${invoiceExisting?.customer?.country_code}`
+        )
+        setCompleteAddress(true)
+      }
 
       /* Invoice lines display */
       invoiceExisting &&
@@ -106,84 +119,89 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
 
   const onSubmit = (data: FieldValues) => {
     console.log('Form Data: ')
+    console.log(data)
 
-    console.log(formatInvoiceUpdate(data))
+    console.log('Form Data Formatted: ')
+    console.log(formatInvoiceCreate(data))
 
-    enum Unit {
-      piece = 'piece',
-      hour = 'hour',
-      day = 'day',
+    // enum Unit {
+    //   piece = 'piece',
+    //   hour = 'hour',
+    //   day = 'day',
+    // }
+
+    // enum VatRate {
+    //   zero = '0',
+    //   five = '5.5',
+    //   ten = '10',
+    //   twenty = '20',
+    // }
+
+    // const _data = {
+    //   invoice: {
+    //     customer_id: 296,
+    //     finalized: false,
+    //     paid: false,
+    //     date: '2021-12-13',
+    //     deadline: '2022-04-18',
+    //     customer: {
+    //       id: 296,
+    //       first_name: 'Maxwell',
+    //       last_name: 'Nienow',
+    //       address: '34113 Echo Ramp',
+    //       zip_code: '83851-1133',
+    //       city: 'Merrileeton',
+    //       country: 'Thailand',
+    //       country_code: 'TH',
+    //     },
+    //     invoice_lines_attributes: [
+    //       {
+    //         product_id: 18,
+    //         quantity: 9,
+    //         unit: Unit.piece,
+    //         label: 'Ford Focus',
+    //         vat_rate: VatRate.twenty,
+    //         price: '17500.0',
+    //         tax: '35140',
+    //         product: {
+    //           id: 18,
+    //           label: 'Ford Focus',
+    //           vat_rate: '10',
+    //           unit: 'piece',
+    //           unit_price: '25100.0',
+    //           unit_price_without_tax: '22818.18',
+    //           unit_tax: '2281.82',
+    //         },
+    //       },
+    //     ],
+    //   },
+    // }
+    // console.log('_data')
+    // console.log(_data)
+    if (action === 'update') {
+      api
+        .putInvoice(invoice?.id, formatInvoiceUpdate(data))
+        .then(({ data }) => {
+          console.log(data)
+          navigate(`/invoice/${data.id}`)
+        })
+    } else if (action === 'create') {
+      api.postInvoices(null, formatInvoiceCreate(data)).then(({ data }) => {
+        console.log(data)
+        navigate(`/invoice/${data.id}`)
+      })
     }
-
-    enum VatRate {
-      zero = '0',
-      five = '5.5',
-      ten = '10',
-      twenty = '20',
-    }
-
-    const _data = {
-      invoice: {
-        id: 10240,
-        customer_id: 296,
-        finalized: false,
-        paid: false,
-        date: '2021-12-13',
-        deadline: '2022-04-18',
-        total: '175700.0',
-        tax: '15972.73',
-        customer: {
-          id: 296,
-          first_name: 'Maxwell',
-          last_name: 'Nienow',
-          address: '34113 Echo Ramp',
-          zip_code: '83851-1133',
-          city: 'Merrileeton',
-          country: 'Thailand',
-          country_code: 'TH',
-        },
-        invoice_lines_attributes: [
-          {
-            id: 19267,
-            invoice_id: 10240,
-            product_id: 18,
-            quantity: 9,
-            unit: Unit.piece,
-            label: 'Ford Focus',
-            vat_rate: VatRate.twenty,
-            price: '17500.0',
-            tax: '35140',
-            _destroy: false,
-            product: {
-              id: 18,
-              label: 'Ford Focus',
-              vat_rate: '10',
-              unit: 'piece',
-              unit_price: '25100.0',
-              unit_price_without_tax: '22818.18',
-              unit_tax: '2281.82',
-            },
-          },
-        ],
-      },
-    }
-    console.log('_data')
-    console.log(_data)
-
-    api.putInvoice(invoice?.id, formatInvoice(data)).then(({ data }) => {
-      console.log(data)
-    })
   }
 
-  const handleChangeCustomer = ({
-    e,
-    updateStateCustomer,
-    name,
-  }: customerSelectProps) => {
-    updateStateCustomer(e)
+  const handleChangeCustomer = (e: Customer | null) => {
+    setCustomer(e)
 
     if (e) {
-      setValue(name, e)
+      setValue('customer', e)
+      setFullAddress(`${e.address} ${e.city} ${e.country} ${e.country_code}`)
+      setCompleteAddress(true)
+      invoice && setInvoice({ ...invoice, customer_id: e.id })
+      setValue('customer_id', e.id)
     }
   }
 
@@ -320,13 +338,7 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
         <CustomerAutocomplete
           value={customer}
           {...register('customer')}
-          onChange={(e) =>
-            handleChangeCustomer({
-              e,
-              updateStateCustomer: setCustomer,
-              name: 'customer',
-            })
-          }
+          onChange={(e) => handleChangeCustomer(e)}
           disabled={finalized}
         />
       </Form.Group>
@@ -548,16 +560,23 @@ const InvoiceTemplate = ({ invoiceExisting }: InvoiceTemplateProps) => {
       <Stack direction="vertical" className="mt-3">
         <div className="ms-auto">
           Total:{' '}
-          <span className="fs-2">{Number(invoice?.total).toFixed(2)}</span>
+          {invoice && (
+            <span className="fs-2">{Number(invoice?.total).toFixed(2)}</span>
+          )}
         </div>
         <div className="ms-auto">
-          Tax: <span className="fs-5">{Number(invoice?.tax).toFixed(2)}</span>
+          Tax:
+          {invoice && (
+            <span className="fs-5">{Number(invoice?.tax).toFixed(2)}</span>
+          )}
         </div>
       </Stack>
       <Stack direction="horizontal">
-        <Button variant="primary" type="submit" className="mx-auto">
-          Update
-        </Button>
+        {btnLabel && (
+          <Button variant="primary" type="submit" className="mx-auto">
+            {btnLabel}
+          </Button>
+        )}
       </Stack>
     </Form>
   )

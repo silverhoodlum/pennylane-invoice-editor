@@ -36,11 +36,14 @@ const InvoiceShow = () => {
     <div>
       <h2>Invoice: {id}</h2>
       {invoice ? (
-        <InvoiceTemplate invoiceExisting={invoice} />
+        <InvoiceTemplate
+          invoiceExisting={invoice}
+          btnLabel="Update Invoice"
+          action="update"
+        />
       ) : (
         <div>Loading</div>
       )}
-      <pre>{JSON.stringify(invoice ?? '', null, 2)}</pre>
     </div>
   )
 }
