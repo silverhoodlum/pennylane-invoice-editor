@@ -331,6 +331,14 @@ const InvoiceTemplate = ({
       setValue('invoice_lines', formLines)
     }
   }
+
+  const handleDeleteInvoice = () => {
+    invoice &&
+      api.deleteInvoice(invoice.id).then(({ data }) => {
+        console.log(data)
+        navigate(`/}`)
+      })
+  }
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <Form.Group className="mb-3" controlId="formCustomer">
@@ -557,25 +565,44 @@ const InvoiceTemplate = ({
           </Button>
         </Stack>
       </div>
-      <Stack direction="vertical" className="mt-3">
-        <div className="ms-auto">
-          Total:{' '}
-          {invoice && (
-            <span className="fs-2">{Number(invoice?.total).toFixed(2)}</span>
-          )}
-        </div>
-        <div className="ms-auto">
-          Tax:
-          {invoice && (
-            <span className="fs-5">{Number(invoice?.tax).toFixed(2)}</span>
-          )}
-        </div>
+      <Stack direction="vertical" className="mt-3 w-25 ms-auto">
+        <Table className="striped  ">
+          <tbody>
+            <tr>
+              <th>Tax:</th>
+              <td>
+                {invoice && (
+                  <span className="fs-5">
+                    {Number(invoice?.tax).toFixed(2)}
+                  </span>
+                )}
+              </td>
+            </tr>
+            <tr>
+              <th>Total: </th>
+              <td>
+                {invoice && (
+                  <span className="fs-2">
+                    {Number(invoice?.total).toFixed(2)}
+                  </span>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </Table>
       </Stack>
       <Stack direction="horizontal">
-        {btnLabel && (
-          <Button variant="primary" type="submit" className="mx-auto">
-            {btnLabel}
+        <div className="me-auto">
+          <Button variant="danger" onClick={() => handleDeleteInvoice}>
+            Delete
           </Button>
+        </div>
+        {btnLabel && (
+          <div className="ms-auto">
+            <Button variant="primary" type="submit" className="mx-auto">
+              {btnLabel}
+            </Button>
+          </div>
         )}
       </Stack>
     </Form>
