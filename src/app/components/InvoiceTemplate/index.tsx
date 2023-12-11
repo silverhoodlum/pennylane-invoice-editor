@@ -31,6 +31,8 @@ import {
 } from 'app/utils/formatInvoice'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
+import './invoice-template.styles.css'
+
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
   btnLabel?: string
@@ -52,7 +54,6 @@ const InvoiceTemplate = ({
   const [products, setProducts] = useState<(Product | null)[]>([])
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
-  const [update, setUpdated] = useState(false)
 
   const api = useApi()
 
@@ -351,7 +352,7 @@ const InvoiceTemplate = ({
             disabled
           />
         )}
-        <Stack>
+        <Stack className="mt-1">
           <Button
             variant="secondary"
             className="ms-auto"
@@ -407,21 +408,25 @@ const InvoiceTemplate = ({
           </Modal.Footer>
         </Modal>
       </Form.Group>
+      <Stack direction="horizontal">
+        <Form.Group className="mb-3" controlId="formDate">
+          <Form.Label>Date</Form.Label>
+          <Form.Control
+            type="date"
+            {...register('date')}
+            disabled={finalized}
+          />
+        </Form.Group>
 
-      <Form.Group className="mb-3" controlId="formDate">
-        <Form.Label>Date</Form.Label>
-        <Form.Control type="date" {...register('date')} disabled={finalized} />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="formDeadline">
-        <Form.Label>Deadline</Form.Label>
-        <Form.Control
-          type="date"
-          {...register('deadline')}
-          disabled={finalized}
-        />
-      </Form.Group>
-
+        <Form.Group className="mb-3 ms-5" controlId="formDeadline">
+          <Form.Label>Deadline</Form.Label>
+          <Form.Control
+            type="date"
+            {...register('deadline')}
+            disabled={finalized}
+          />
+        </Form.Group>
+      </Stack>
       <Form.Group className="mb-3" controlId="formPaid">
         <Form.Check type="checkbox" label="Paid" {...register('paid')} />
       </Form.Group>
@@ -471,11 +476,6 @@ const InvoiceTemplate = ({
                       />
                     </td>
                     <td>
-                      {/* <Form.Control
-                        type="text"
-                        placeholder="e. g. piece"
-                        
-                      /> */}
                       <Form.Select
                         aria-label="Default select example"
                         placeholder="e. g. piece"
@@ -522,11 +522,13 @@ const InvoiceTemplate = ({
                       />
                     </td>
                     <td>
-                      <FontAwesomeIcon
-                        icon={faTrash}
-                        role="button"
-                        onClick={() => deleteLine(index)}
-                      />
+                      <Button variant="secondary" disabled={finalized}>
+                        <FontAwesomeIcon
+                          icon={faTrash}
+                          role="button"
+                          onClick={() => deleteLine(index)}
+                        />
+                      </Button>
                     </td>
                   </tr>
                 )
@@ -535,7 +537,7 @@ const InvoiceTemplate = ({
         </Table>
         <Stack>
           <Button
-            variant="secondary"
+            variant="dark"
             className="ms-auto"
             onClick={addInvoiceLine}
             disabled={finalized}
