@@ -12,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/invoice/:id" Component={InvoiceShow} />
           <Route path="/" Component={InvoicesList} />
+          <Route path="/create" Component={InvoicesList} />
         </Routes>
       </Router>
     </div>
