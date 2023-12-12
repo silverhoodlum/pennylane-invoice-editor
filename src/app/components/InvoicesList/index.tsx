@@ -1,24 +1,56 @@
 import { useApi } from 'api'
-import { Invoice } from 'types'
+import { Customer, Invoice, Product } from 'types'
 import { useEffect, useCallback, useState } from 'react'
 import GettingStarted from 'app/GettingStarted'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from 'react-bootstrap'
+import CustomerAutocomplete from '../CustomerAutocomplete'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCross, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const InvoicesList = (): React.ReactElement => {
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [filterTag, setFilterTag] = useState({ isActive: false, tagName: '' })
+
   const api = useApi()
   const navigate = useNavigate()
 
   const [invoicesList, setInvoicesList] = useState<Invoice[]>([])
+  const [filteredInvoicesList, setFilteredInvoicesList] = useState<Invoice[]>(
+    []
+  )
 
   const fetchInvoices = useCallback(async () => {
     const { data } = await api.getInvoices()
     setInvoicesList(data.invoices)
+    setFilteredInvoicesList(data.invoices)
     console.log(data)
   }, [api])
 
   const handleRowClick = (id: number) => {
     navigate(`./invoice/${id}`)
+  }
+
+  const handleCustomerChange = (e: Customer | null) => {
+    setCustomer(e)
+
+    e &&
+      setFilteredInvoicesList(
+        filteredInvoicesList.filter((invoice) => invoice.customer_id === e.id)
+      )
+    e &&
+      setFilterTag({
+        isActive: true,
+        tagName: `${e.first_name} ${e.last_name}`,
+      })
+
+    setCustomer(null)
+  }
+
+  const removeFilter = () => {
+    setFilteredInvoicesList(invoicesList)
+    setFilterTag({ isActive: false, tagName: '' })
   }
 
   useEffect(() => {
@@ -27,10 +59,32 @@ const InvoicesList = (): React.ReactElement => {
 
   return (
     <>
-      <GettingStarted />
+      <div className="my-2">
+        <CustomerAutocomplete
+          value={customer}
+          onChange={(e) => handleCustomerChange(e)}
+        />
+      </div>
       <Link to="/create">
-        <Button>Create Invoice</Button>
+        <Button className="my-3">Create Invoice</Button>
       </Link>
+      <div className="my-2">
+        {filterTag.isActive && (
+          <Button variant="light" onClick={removeFilter}>
+            <FontAwesomeIcon
+              icon={faXmark}
+              className="fs-3"
+              style={{ display: 'inline-block', verticalAlign: 'middle' }}
+            />
+            <span
+              style={{ display: 'inline-block', verticalAlign: 'middle' }}
+              className="ps-2"
+            >
+              {filterTag.tagName}
+            </span>
+          </Button>
+        )}
+      </div>
       <table className="table table-bordered table-striped">
         <thead>
           <tr>
@@ -46,7 +100,7 @@ const InvoicesList = (): React.ReactElement => {
           </tr>
         </thead>
         <tbody>
-          {invoicesList.map((invoice) => (
+          {filteredInvoicesList.map((invoice) => (
             <tr
               key={invoice.id}
               onClick={() => handleRowClick(invoice.id)}
