@@ -1,4 +1,3 @@
-import { InvoiceUpdatePayload } from 'app/types/types'
 import { FieldValues } from 'react-hook-form'
 
 export const formatInvoiceUpdate = (invoice: FieldValues) => {
@@ -9,9 +8,9 @@ export const formatInvoiceUpdate = (invoice: FieldValues) => {
     },
   }
   delete formattedData.invoice.invoice_lines
-  delete formattedData.total
-  delete formattedData.tax
-  delete formattedData.customer
+  delete formattedData.invoice.total
+  delete formattedData.invoice.tax
+  delete formattedData.invoice.customer
   return formattedData
 }
 

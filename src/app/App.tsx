@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import InvoicesList from './components/InvoicesList'
 import InvoiceShow from './components/InvoiceShow'
 
-import GettingStarted from './GettingStarted'
 import InvoiceCreate from './components/InvoiceCreate'
 import NavbarComponent from './components/Navbar/navbar'
 
