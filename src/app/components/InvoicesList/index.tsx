@@ -7,11 +7,16 @@ import { Button } from 'react-bootstrap'
 import CustomerAutocomplete from '../CustomerAutocomplete'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCross, faXmark } from '@fortawesome/free-solid-svg-icons'
+import ProductAutocomplete from '../ProductAutocomplete'
 
 const InvoicesList = (): React.ReactElement => {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
   const [filterTag, setFilterTag] = useState({ isActive: false, tagName: '' })
+  const [productFilterTag, setProductFilterTag] = useState({
+    isActive: false,
+    tagName: '',
+  })
 
   const api = useApi()
   const navigate = useNavigate()
@@ -48,6 +53,22 @@ const InvoicesList = (): React.ReactElement => {
     setCustomer(null)
   }
 
+  const handleProductChange = (e: Product | null) => {
+    setProduct(e)
+
+    e &&
+      setFilteredInvoicesList(
+        filteredInvoicesList.filter((invoice) => invoice.customer_id === e.id)
+      )
+    e &&
+      setProductFilterTag({
+        isActive: true,
+        tagName: `${e.label}`,
+      })
+
+    setCustomer(null)
+  }
+
   const removeFilter = () => {
     setFilteredInvoicesList(invoicesList)
     setFilterTag({ isActive: false, tagName: '' })
@@ -65,11 +86,35 @@ const InvoicesList = (): React.ReactElement => {
           onChange={(e) => handleCustomerChange(e)}
         />
       </div>
+
+      <div className="mb-5">
+        <ProductAutocomplete
+          value={product}
+          onChange={(e) => handleProductChange(e)}
+        />
+      </div>
       <Link to="/create">
         <Button className="my-3">Create Invoice</Button>
       </Link>
       <div className="my-2">
         {filterTag.isActive && (
+          <Button variant="light" onClick={removeFilter}>
+            <FontAwesomeIcon
+              icon={faXmark}
+              className="fs-3"
+              style={{ display: 'inline-block', verticalAlign: 'middle' }}
+            />
+            <span
+              style={{ display: 'inline-block', verticalAlign: 'middle' }}
+              className="ps-2"
+            >
+              {filterTag.tagName}
+            </span>
+          </Button>
+        )}
+      </div>
+      <div>
+        {productFilterTag.isActive && (
           <Button variant="light" onClick={removeFilter}>
             <FontAwesomeIcon
               icon={faXmark}
