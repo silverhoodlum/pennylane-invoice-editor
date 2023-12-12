@@ -250,6 +250,7 @@ const InvoiceTemplate = ({
       }
     }
 
+    setLinesValidationError(false)
     /* update form in product array */
     if (e) {
       setValue(`invoice_lines.${index}.product`, e)
