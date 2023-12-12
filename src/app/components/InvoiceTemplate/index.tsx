@@ -33,6 +33,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import './invoice-template.styles.css'
 import areLinesValid from 'app/utils/invoice-lines.validation'
+import linesCheck from 'app/utils/invoice-lines.validation'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -51,8 +52,10 @@ const InvoiceTemplate = ({
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
   const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
-  const [linesValidationError, setLinesValidationError] =
-    useState<boolean>(false)
+  const [linesValidationError, setLinesValidationError] = useState({
+    status: false,
+    message: '',
+  })
 
   const api = useApi()
 
@@ -134,8 +137,11 @@ const InvoiceTemplate = ({
     console.log('Form Data Formatted: ')
     console.log(formatInvoiceCreate(data))
 
-    if (!areLinesValid(data.invoice_lines)) {
-      setLinesValidationError(true)
+    if (!linesCheck(invoice?.invoice_lines)?.areValid) {
+      setLinesValidationError({
+        status: true,
+        message: linesCheck(invoice?.invoice_lines)?.error,
+      })
       return
     }
     // const _data = {
@@ -250,7 +256,7 @@ const InvoiceTemplate = ({
       }
     }
 
-    setLinesValidationError(false)
+    setLinesValidationError({ status: false, message: '' })
     /* update form in product array */
     if (e) {
       setValue(`invoice_lines.${index}.product`, e)
@@ -325,10 +331,25 @@ const InvoiceTemplate = ({
         (line, i) => i !== index
       )
 
-      setInvoice({ ...invoice, invoice_lines: updatedLinesLocal })
+      setInvoice({
+        ...invoice,
+        total: getTotalPrice(updatedLinesLocal, 'price'),
+        tax: getTotalPrice(updatedLinesLocal, 'tax'),
+        invoice_lines: updatedLinesLocal,
+      })
+      setProducts([...products].filter((product, i) => i !== index))
 
       const formLines = getValues('invoice_lines').map((line, i) =>
-        index === i ? { ...line, _destroy: true } : line
+        index === i
+          ? {
+              ...line,
+              quantity: 0,
+              vat_rate: VatRate.zero,
+              price: '0',
+              tax: '0',
+              _destroy: true,
+            }
+          : line
       )
       setValue('invoice_lines', formLines)
     }
@@ -558,8 +579,8 @@ const InvoiceTemplate = ({
               })}
           </tbody>
         </Table>
-        {linesValidationError && (
-          <p className="text-danger">You need at least 1 invoice line</p>
+        {linesValidationError.status && (
+          <p className="text-danger">{linesValidationError.message}</p>
         )}
         <Stack>
           <Button
