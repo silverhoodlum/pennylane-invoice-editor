@@ -138,7 +138,6 @@ const InvoiceTemplate = ({
     console.log(formatInvoiceCreate(data))
 
     if (!linesCheck(invoice?.invoice_lines)?.areValid) {
-      alert('here')
       setLinesValidationError({
         status: true,
         message: linesCheck(invoice?.invoice_lines)?.error,
@@ -332,8 +331,14 @@ const InvoiceTemplate = ({
         (line, i) => i !== index
       )
 
-      setInvoice({ ...invoice, invoice_lines: updatedLinesLocal })
+      setInvoice({
+        ...invoice,
+        total: getTotalPrice(updatedLinesLocal, 'price'),
+        tax: getTotalPrice(updatedLinesLocal, 'tax'),
+        invoice_lines: updatedLinesLocal,
+      })
       setProducts([...products].filter((product, i) => i !== index))
+
       const formLines = getValues('invoice_lines').map((line, i) =>
         index === i
           ? {
