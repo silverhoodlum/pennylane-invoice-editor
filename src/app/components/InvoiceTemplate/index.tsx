@@ -326,9 +326,18 @@ const InvoiceTemplate = ({
       )
 
       setInvoice({ ...invoice, invoice_lines: updatedLinesLocal })
-
+      setProducts([...products].filter((product, i) => i !== index))
       const formLines = getValues('invoice_lines').map((line, i) =>
-        index === i ? { ...line, _destroy: true } : line
+        index === i
+          ? {
+              ...line,
+              quantity: 0,
+              vat_rate: VatRate.zero,
+              price: '0',
+              tax: '0',
+              _destroy: true,
+            }
+          : line
       )
       setValue('invoice_lines', formLines)
     }
