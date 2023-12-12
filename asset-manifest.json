@@ -1,11 +1,11 @@
 {
   "files": {
     "main.css": "/pennylane-invoice-editor/static/css/main.76e2fb86.css",
-    "main.js": "/pennylane-invoice-editor/static/js/main.c675b953.js",
+    "main.js": "/pennylane-invoice-editor/static/js/main.806b305b.js",
     "index.html": "/pennylane-invoice-editor/index.html"
   },
   "entrypoints": [
     "static/css/main.76e2fb86.css",
-    "static/js/main.c675b953.js"
+    "static/js/main.806b305b.js"
   ]
 }
