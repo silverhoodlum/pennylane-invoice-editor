@@ -33,6 +33,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import './invoice-template.styles.css'
 import areLinesValid from 'app/utils/invoice-lines.validation'
+import linesCheck from 'app/utils/invoice-lines.validation'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -51,8 +52,10 @@ const InvoiceTemplate = ({
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
   const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
-  const [linesValidationError, setLinesValidationError] =
-    useState<boolean>(false)
+  const [linesValidationError, setLinesValidationError] = useState({
+    status: false,
+    message: '',
+  })
 
   const api = useApi()
 
@@ -134,8 +137,12 @@ const InvoiceTemplate = ({
     console.log('Form Data Formatted: ')
     console.log(formatInvoiceCreate(data))
 
-    if (!areLinesValid(data.invoice_lines)) {
-      setLinesValidationError(true)
+    if (!linesCheck(invoice?.invoice_lines)?.areValid) {
+      alert('here')
+      setLinesValidationError({
+        status: true,
+        message: linesCheck(invoice?.invoice_lines)?.error,
+      })
       return
     }
     // const _data = {
@@ -250,7 +257,7 @@ const InvoiceTemplate = ({
       }
     }
 
-    setLinesValidationError(false)
+    setLinesValidationError({ status: false, message: '' })
     /* update form in product array */
     if (e) {
       setValue(`invoice_lines.${index}.product`, e)
@@ -567,8 +574,8 @@ const InvoiceTemplate = ({
               })}
           </tbody>
         </Table>
-        {linesValidationError && (
-          <p className="text-danger">You need at least 1 invoice line</p>
+        {linesValidationError.status && (
+          <p className="text-danger">{linesValidationError.message}</p>
         )}
         <Stack>
           <Button
