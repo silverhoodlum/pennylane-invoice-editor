@@ -3,19 +3,32 @@ import { Customer, Invoice, Product } from 'types'
 import { useEffect, useCallback, useState } from 'react'
 import GettingStarted from 'app/GettingStarted'
 import { Link, useNavigate } from 'react-router-dom'
-import { Button } from 'react-bootstrap'
+import { Button, Stack } from 'react-bootstrap'
 import CustomerAutocomplete from '../CustomerAutocomplete'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCross, faXmark } from '@fortawesome/free-solid-svg-icons'
 import ProductAutocomplete from '../ProductAutocomplete'
+import { InvoiceLineD, InvoiceLineData } from 'app/types/types'
+import lineContainsProduct from 'app/utils/lineContainsProduct'
+
+interface filterTagsProps {
+  isActive: boolean
+  tagName: string
+  id: number | null
+}
 
 const InvoicesList = (): React.ReactElement => {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
-  const [filterTag, setFilterTag] = useState({ isActive: false, tagName: '' })
-  const [productFilterTag, setProductFilterTag] = useState({
+  const [filterTag, setFilterTag] = useState<filterTagsProps>({
     isActive: false,
     tagName: '',
+    id: null,
+  })
+  const [productFilterTag, setProductFilterTag] = useState<filterTagsProps>({
+    isActive: false,
+    tagName: '',
+    id: null,
   })
 
   const api = useApi()
@@ -48,6 +61,7 @@ const InvoicesList = (): React.ReactElement => {
       setFilterTag({
         isActive: true,
         tagName: `${e.first_name} ${e.last_name}`,
+        id: e.id,
       })
 
     setCustomer(null)
@@ -58,20 +72,45 @@ const InvoicesList = (): React.ReactElement => {
 
     e &&
       setFilteredInvoicesList(
-        filteredInvoicesList.filter((invoice) => invoice.customer_id === e.id)
+        filteredInvoicesList.filter((invoice) =>
+          lineContainsProduct(invoice.invoice_lines, e.id)
+        )
       )
     e &&
       setProductFilterTag({
         isActive: true,
-        tagName: `${e.label}`,
+        tagName: e.label,
+        id: e.id,
       })
 
-    setCustomer(null)
+    setProduct(null)
   }
 
-  const removeFilter = () => {
+  const checkOtherFilters = (name: 'customer' | 'product') => {
+    if (name === 'customer' && productFilterTag.isActive) {
+      setFilteredInvoicesList(
+        invoicesList.filter((invoice) =>
+          lineContainsProduct(
+            invoice.invoice_lines,
+            Number(productFilterTag.id)
+          )
+        )
+      )
+    } else if (name === 'product' && filterTag.isActive) {
+      setFilteredInvoicesList(
+        invoicesList.filter((invoice) => invoice.customer_id === filterTag.id)
+      )
+    }
+  }
+  const removeFilter = (name: 'product' | 'customer') => {
     setFilteredInvoicesList(invoicesList)
-    setFilterTag({ isActive: false, tagName: '' })
+    if (name === 'customer') {
+      setFilterTag({ isActive: false, tagName: '', id: null })
+      checkOtherFilters('customer')
+    } else {
+      setProductFilterTag({ isActive: false, tagName: '', id: null })
+      checkOtherFilters('product')
+    }
   }
 
   useEffect(() => {
@@ -80,25 +119,28 @@ const InvoicesList = (): React.ReactElement => {
 
   return (
     <>
-      <div className="my-2">
-        <CustomerAutocomplete
-          value={customer}
-          onChange={(e) => handleCustomerChange(e)}
-        />
-      </div>
+      <Stack direction="horizontal" className="w-100">
+        <div className="my-2 " style={{ width: '30%' }}>
+          <CustomerAutocomplete
+            value={customer}
+            onChange={(e) => handleCustomerChange(e)}
+          />
+        </div>
 
-      <div className="mb-5">
-        <ProductAutocomplete
-          value={product}
-          onChange={(e) => handleProductChange(e)}
-        />
-      </div>
+        <div className="ms-5" style={{ width: '30%' }}>
+          <ProductAutocomplete
+            value={product}
+            onChange={(e) => handleProductChange(e)}
+          />
+        </div>
+      </Stack>
+
       <Link to="/create">
         <Button className="my-3">Create Invoice</Button>
       </Link>
       <div className="my-2">
         {filterTag.isActive && (
-          <Button variant="light" onClick={removeFilter}>
+          <Button variant="light" onClick={() => removeFilter('customer')}>
             <FontAwesomeIcon
               icon={faXmark}
               className="fs-3"
@@ -113,9 +155,9 @@ const InvoicesList = (): React.ReactElement => {
           </Button>
         )}
       </div>
-      <div>
+      <div className="my-2">
         {productFilterTag.isActive && (
-          <Button variant="light" onClick={removeFilter}>
+          <Button variant="light" onClick={() => removeFilter('product')}>
             <FontAwesomeIcon
               icon={faXmark}
               className="fs-3"
@@ -125,7 +167,7 @@ const InvoicesList = (): React.ReactElement => {
               style={{ display: 'inline-block', verticalAlign: 'middle' }}
               className="ps-2"
             >
-              {filterTag.tagName}
+              {productFilterTag.tagName}
             </span>
           </Button>
         )}
