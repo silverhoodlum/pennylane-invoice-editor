@@ -34,6 +34,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import './invoice-template.styles.css'
 import areLinesValid from 'app/utils/invoice-lines.validation'
 import linesCheck from 'app/utils/invoice-lines.validation'
+import ModalStatus from '../ModalStatus'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -52,6 +53,7 @@ const InvoiceTemplate = ({
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
   const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
+  const [invoiceUpdated, setInvoiceUpdated] = useState<boolean>(false)
   const [linesValidationError, setLinesValidationError] = useState({
     status: false,
     message: '',
@@ -61,12 +63,16 @@ const InvoiceTemplate = ({
 
   const [show, setShow] = useState(false)
   const [showDel, setShowDel] = useState(false)
+  const [showUpd, setShowUpd] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
 
   const handleCloseDel = () => setShowDel(false)
   const handleDel = () => setShowDel(true)
+
+  const handleCloseUpd = () => setShowUpd(false)
+  const handleUpd = () => setShowUpd(true)
 
   const {
     register,
@@ -189,7 +195,13 @@ const InvoiceTemplate = ({
       api
         .putInvoice(invoice?.id, formatInvoiceUpdate(data))
         .then(({ data }) => {
-          console.log(data)
+          setInvoiceUpdated(true)
+          setShowUpd(true)
+          setTimeout(function () {
+            setInvoiceUpdated(false)
+            setShowUpd(false)
+          }, 2000)
+
           navigate(`/invoice/${data.id}`)
         })
     } else if (action === 'create') {
@@ -355,6 +367,9 @@ const InvoiceTemplate = ({
     }
   }
 
+  const backtoHomepage = () => {
+    navigate('/')
+  }
   const handleDeleteInvoice = () => {
     invoice &&
       api.deleteInvoice(invoice.id).then(({ data }) => {
@@ -621,41 +636,40 @@ const InvoiceTemplate = ({
       </Stack>
       <Stack direction="horizontal">
         <div className="me-auto">
-          <Modal show={showDel} onHide={handleCloseDel}>
-            {!invoiceDeleted ? (
-              <div>
-                <Modal.Header closeButton>
-                  <Modal.Title>Enter your address</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  Are you sure you want to delete this invoice
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="danger" onClick={handleDeleteInvoice}>
-                    Delete
-                  </Button>
-                  <Button variant="primary" onClick={handleCloseDel}>
-                    Cancel
-                  </Button>
-                </Modal.Footer>
-              </div>
-            ) : (
-              <div>
-                <Modal.Body>Invoice has been deleted correctly</Modal.Body>
-                <Modal.Footer>
-                  <Link to="/">
-                    <Button>Back to Homepage</Button>
-                  </Link>
-                </Modal.Footer>
-              </div>
-            )}
-          </Modal>
+          {!invoiceDeleted ? (
+            <ModalStatus
+              message=" Are you sure you want to delete this invoice"
+              btnPrimaryLabel="Delete"
+              btnPrimaryFn={handleDeleteInvoice}
+              btnPrimaryVariant="danger"
+              btnSecondaryLabel="Cancel"
+              btnSecondaryFn={handleCloseDel}
+              show={showDel}
+              hideFn={handleCloseDel}
+            />
+          ) : (
+            <ModalStatus
+              message=" Invoice has been deleted correctly"
+              btnPrimaryLabel="Back to Homepage"
+              btnPrimaryFn={backtoHomepage}
+              show={showDel}
+              hideFn={handleCloseDel}
+            />
+          )}
+
           <Button variant="danger" onClick={handleDel}>
             Delete
           </Button>
         </div>
         {btnLabel && (
           <div className="ms-auto">
+            {invoiceUpdated && (
+              <ModalStatus
+                message="Modal has been updated correctly"
+                show={showUpd}
+                hideFn={handleCloseUpd}
+              />
+            )}
             <Button variant="primary" type="submit" className="mx-auto">
               {btnLabel}
             </Button>
