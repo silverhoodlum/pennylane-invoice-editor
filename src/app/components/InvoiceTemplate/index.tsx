@@ -218,8 +218,8 @@ const InvoiceTemplate = ({
       const updatedLines = invoice.invoice_lines.map((line, i) => {
         const { line_price, line_tax } = priceBreakdown(
           e.unit_price,
-          line.vat_rate,
-          line.quantity
+          e.vat_rate,
+          1
         )
         return i === index
           ? {
@@ -231,6 +231,7 @@ const InvoiceTemplate = ({
               label: e?.label,
               price: line_price,
               tax: line_tax,
+              quantity: 1,
             }
           : line
       })
@@ -267,7 +268,6 @@ const InvoiceTemplate = ({
           name === 'quantity' ? line.vat_rate : e.target.value,
           name === 'quantity' ? e.target.value : line.quantity
         )
-
         return i === index
           ? {
               ...line,
