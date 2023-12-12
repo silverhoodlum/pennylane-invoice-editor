@@ -487,6 +487,7 @@ const InvoiceTemplate = ({
                       <Form.Control
                         type="number"
                         placeholder="0"
+                        min={1}
                         disabled={finalized}
                         {...register(`invoice_lines.${index}.quantity`)}
                         onChange={(e) =>
