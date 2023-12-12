@@ -4,12 +4,13 @@ import Button from 'react-bootstrap/Button'
 interface ModalProps {
   title?: string
   message: string
-  btnPrimaryLabel: string
-  btnPrimaryFn: () => void
+  btnPrimaryLabel?: string
+  btnPrimaryVariant?: string
+  btnPrimaryFn?: () => void
   btnSecondaryLabel?: string
   btnSecondaryFn?: () => void
   show: boolean
-  hideFn: () => boolean
+  hideFn: () => void
 }
 
 const ModalStatus = ({
@@ -17,6 +18,7 @@ const ModalStatus = ({
   message,
   btnPrimaryLabel,
   btnPrimaryFn,
+  btnPrimaryVariant,
   btnSecondaryLabel,
   btnSecondaryFn,
   show,
@@ -25,22 +27,23 @@ const ModalStatus = ({
   return (
     <Modal show={show} onHide={hideFn}>
       <div>
-        {title && (
-          <Modal.Header closeButton>
-            <Modal.Title>{title}</Modal.Title>
-          </Modal.Header>
-        )}
+        <Modal.Header closeButton>
+          {title && <Modal.Title>{title}</Modal.Title>}
+        </Modal.Header>
+
         <Modal.Body>{message}</Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={btnPrimaryFn}>
-            {btnPrimaryLabel}
-          </Button>
-          {btnSecondaryLabel && (
-            <Button variant="primary" onClick={btnPrimaryFn}>
-              Cancel
+        {btnPrimaryLabel && (
+          <Modal.Footer>
+            <Button variant={btnPrimaryVariant} onClick={btnPrimaryFn}>
+              {btnPrimaryLabel}
             </Button>
-          )}
-        </Modal.Footer>
+            {btnSecondaryLabel && (
+              <Button variant="primary" onClick={btnSecondaryFn}>
+                Cancel
+              </Button>
+            )}
+          </Modal.Footer>
+        )}
       </div>
     </Modal>
   )
