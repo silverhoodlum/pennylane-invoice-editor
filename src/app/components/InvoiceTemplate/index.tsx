@@ -32,16 +32,12 @@ import {
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import './invoice-template.styles.css'
+import areLinesValid from 'app/utils/invoice-lines.validation'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
   btnLabel?: string
   action: 'update' | 'create'
-}
-interface customerSelectProps {
-  e: Customer | null
-  updateStateCustomer: React.Dispatch<React.SetStateAction<Customer | null>>
-  name: 'customer'
 }
 
 const InvoiceTemplate = ({
@@ -55,6 +51,8 @@ const InvoiceTemplate = ({
   const [invoice, setInvoice] = useState<InvoiceD>()
   const [finalized, setFinalized] = useState<boolean | undefined>(false)
   const [invoiceDeleted, setInvoiceDeleted] = useState<boolean>(false)
+  const [linesValidationError, setLinesValidationError] =
+    useState<boolean>(false)
 
   const api = useApi()
 
@@ -136,6 +134,10 @@ const InvoiceTemplate = ({
     console.log('Form Data Formatted: ')
     console.log(formatInvoiceCreate(data))
 
+    if (!areLinesValid(data.invoice_lines)) {
+      setLinesValidationError(true)
+      return
+    }
     // const _data = {
     //   invoice: {
     //     customer_id: 296,
@@ -555,6 +557,9 @@ const InvoiceTemplate = ({
               })}
           </tbody>
         </Table>
+        {linesValidationError && (
+          <p className="text-danger">You need at least 1 invoice line</p>
+        )}
         <Stack>
           <Button
             variant="dark"
