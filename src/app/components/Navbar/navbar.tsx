@@ -1,13 +1,8 @@
 import { Navbar } from 'react-bootstrap'
 import Container from 'react-bootstrap/Container'
-import Nav from 'react-bootstrap/Nav'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faCross,
-  faFileInvoice,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { faFileInvoice } from '@fortawesome/free-solid-svg-icons'
 
 const NavbarComponent = () => {
   return (

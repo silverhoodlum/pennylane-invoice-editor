@@ -1,14 +1,12 @@
 import { useApi } from 'api'
 import { Customer, Invoice, Product } from 'types'
 import { useEffect, useCallback, useState } from 'react'
-import GettingStarted from 'app/GettingStarted'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, Stack } from 'react-bootstrap'
 import CustomerAutocomplete from '../CustomerAutocomplete'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCross, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import ProductAutocomplete from '../ProductAutocomplete'
-import { InvoiceLineD, InvoiceLineData } from 'app/types/types'
 import lineContainsProduct from 'app/utils/lineContainsProduct'
 
 interface filterTagsProps {

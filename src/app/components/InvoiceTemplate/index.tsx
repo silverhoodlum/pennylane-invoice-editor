@@ -1,5 +1,4 @@
-import { useState, useEffect, ChangeEvent } from 'react'
-import { useParams } from 'react-router'
+import { useState, useEffect } from 'react'
 
 import { useApi } from 'api'
 import { Customer, Invoice, Product } from 'types'
@@ -14,14 +13,10 @@ import ProductAutocomplete from '../ProductAutocomplete'
 import Modal from 'react-bootstrap/Modal'
 import { FieldValues, useForm } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import priceBreakdown from 'app/utils/price-breadown'
-import {
-  InvoiceD,
-  InvoiceLineCreatePayload,
-  InvoiceLineD,
-} from 'app/types/types'
+import { InvoiceD, InvoiceLineD } from 'app/types/types'
 import _, { random } from 'lodash'
 import { VatRate, Unit } from 'app/utils/enums'
 import getTotalPrice from 'app/utils/total-price'
@@ -30,11 +25,10 @@ import {
   formatInvoiceUpdate,
 } from 'app/utils/formatInvoice'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
-
-import './invoice-template.styles.css'
-import areLinesValid from 'app/utils/invoice-lines.validation'
 import linesCheck from 'app/utils/invoice-lines.validation'
 import ModalStatus from '../ModalStatus'
+
+import './invoice-template.styles.css'
 
 interface InvoiceTemplateProps {
   invoiceExisting?: Invoice | InvoiceD
@@ -90,7 +84,6 @@ const InvoiceTemplate = ({
   const navigate = useNavigate()
 
   useEffect(() => {
-    console.log(invoiceExisting)
     /* Initial load */
     if (previousInvoice) {
       invoiceExisting?.customer && setCustomer(invoiceExisting.customer)
@@ -125,8 +118,6 @@ const InvoiceTemplate = ({
   }, [])
 
   useEffect(() => {
-    console.log('Customer:')
-    console.log(customer)
     setFullAddress(
       `${customer?.address} ${customer?.city} ${customer?.country} ${customer?.country_code}`
     )
@@ -137,12 +128,6 @@ const InvoiceTemplate = ({
   }, [products])
 
   const onSubmit = (data: FieldValues) => {
-    console.log('Form Data: ')
-    console.log(data)
-
-    console.log('Form Data Formatted: ')
-    console.log(formatInvoiceCreate(data))
-
     if (!linesCheck(invoice?.invoice_lines)?.areValid) {
       setLinesValidationError({
         status: true,
@@ -150,47 +135,7 @@ const InvoiceTemplate = ({
       })
       return
     }
-    // const _data = {
-    //   invoice: {
-    //     customer_id: 296,
-    //     finalized: false,
-    //     paid: false,
-    //     date: '2021-12-13',
-    //     deadline: '2022-04-18',
-    //     customer: {
-    //       id: 296,
-    //       first_name: 'Maxwell',
-    //       last_name: 'Nienow',
-    //       address: '34113 Echo Ramp',
-    //       zip_code: '83851-1133',
-    //       city: 'Merrileeton',
-    //       country: 'Thailand',
-    //       country_code: 'TH',
-    //     },
-    //     invoice_lines_attributes: [
-    //       {
-    //         product_id: 18,
-    //         quantity: 9,
-    //         unit: Unit.piece,
-    //         label: 'Ford Focus',
-    //         vat_rate: VatRate.twenty,
-    //         price: '17500.0',
-    //         tax: '35140',
-    //         product: {
-    //           id: 18,
-    //           label: 'Ford Focus',
-    //           vat_rate: '10',
-    //           unit: 'piece',
-    //           unit_price: '25100.0',
-    //           unit_price_without_tax: '22818.18',
-    //           unit_tax: '2281.82',
-    //         },
-    //       },
-    //     ],
-    //   },
-    // }
-    // console.log('_data')
-    // console.log(_data)
+
     if (action === 'update') {
       api
         .putInvoice(invoice?.id, formatInvoiceUpdate(data))
@@ -206,7 +151,6 @@ const InvoiceTemplate = ({
         })
     } else if (action === 'create') {
       api.postInvoices(null, formatInvoiceCreate(data)).then(({ data }) => {
-        console.log(data)
         navigate(`/invoice/${data.id}`)
       })
     }
@@ -335,10 +279,6 @@ const InvoiceTemplate = ({
 
   const deleteLine = (index: number) => {
     if (invoice?.invoice_lines) {
-      // const updatedLinesRemote = invoice.invoice_lines.map((line, i) =>
-      //   index === i ? { ...line, _destroy: true } : line
-      // )
-
       const updatedLinesLocal = invoice.invoice_lines.filter(
         (line, i) => i !== index
       )
@@ -373,9 +313,7 @@ const InvoiceTemplate = ({
   const handleDeleteInvoice = () => {
     invoice &&
       api.deleteInvoice(invoice.id).then(({ data }) => {
-        console.log(data)
         setInvoiceDeleted(true)
-        // navigate(`/`)
       })
   }
   return (
@@ -397,7 +335,7 @@ const InvoiceTemplate = ({
         {completeAddress && (
           <Form.Control
             as="textarea"
-            rows={3}
+            rows={2}
             type="text"
             placeholder="Address"
             value={fullAddress}
@@ -462,28 +400,33 @@ const InvoiceTemplate = ({
           </Modal.Footer>
         </Modal>
       </Form.Group>
-      <Stack direction="horizontal">
-        <Form.Group className="mb-3" controlId="formDate">
-          <Form.Label>Date</Form.Label>
-          <Form.Control
-            type="date"
-            {...register('date', { required: 'Date is required' })}
-            disabled={finalized}
-          />
-          {errors.date && <p className="text-danger">{errors.date.message}</p>}
-        </Form.Group>
-
-        <Form.Group className="mb-3 ms-5" controlId="formDeadline">
-          <Form.Label>Deadline</Form.Label>
-          <Form.Control
-            type="date"
-            {...register('deadline', { required: 'Deadline is required' })}
-            disabled={finalized}
-          />
-          {errors.deadline && (
-            <p className="text-danger">{errors.deadline.message}</p>
-          )}
-        </Form.Group>
+      <Stack direction="horizontal" className="w-50">
+        <Stack direction="vertical">
+          <Form.Group className="mb-3" controlId="formDate">
+            <Form.Label>Date</Form.Label>
+            <Form.Control
+              type="date"
+              {...register('date', { required: 'Date is required' })}
+              disabled={finalized}
+            />
+            {errors.date && (
+              <p className="text-danger">{errors.date.message}</p>
+            )}
+          </Form.Group>
+        </Stack>
+        <Stack direction="vertical">
+          <Form.Group className="mb-3 ms-5" controlId="formDeadline">
+            <Form.Label>Deadline</Form.Label>
+            <Form.Control
+              type="date"
+              {...register('deadline', { required: 'Deadline is required' })}
+              disabled={finalized}
+            />
+            {errors.deadline && (
+              <p className="text-danger">{errors.deadline.message}</p>
+            )}
+          </Form.Group>
+        </Stack>
       </Stack>
       <Form.Group className="mb-3" controlId="formPaid">
         <Form.Check type="checkbox" label="Paid" {...register('paid')} />
@@ -665,7 +608,7 @@ const InvoiceTemplate = ({
           <div className="ms-auto">
             {invoiceUpdated && (
               <ModalStatus
-                message="Modal has been updated correctly"
+                message="Invoice has been updated correctly"
                 show={showUpd}
                 hideFn={handleCloseUpd}
               />
