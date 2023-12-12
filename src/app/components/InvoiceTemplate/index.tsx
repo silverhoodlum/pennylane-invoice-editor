@@ -67,7 +67,13 @@ const InvoiceTemplate = ({
   const handleCloseDel = () => setShowDel(false)
   const handleDel = () => setShowDel(true)
 
-  const { register, handleSubmit, setValue, getValues } = useForm({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm({
     defaultValues: invoiceExisting,
   })
 
@@ -344,7 +350,9 @@ const InvoiceTemplate = ({
           disabled={finalized}
         />
       </Form.Group>
-
+      {errors.customer?.address && (
+        <p className="text-danger">{errors.customer.address.message}</p>
+      )}
       <Form.Group className="mb-3" controlId="formAddress">
         <Form.Label>Address</Form.Label>
         {completeAddress && (
@@ -378,7 +386,9 @@ const InvoiceTemplate = ({
               <Form.Control
                 type="text"
                 placeholder="street name"
-                {...register('customer.address')}
+                {...register('customer.address', {
+                  required: 'Customer is needed',
+                })}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="formCity">
@@ -418,18 +428,22 @@ const InvoiceTemplate = ({
           <Form.Label>Date</Form.Label>
           <Form.Control
             type="date"
-            {...register('date')}
+            {...register('date', { required: 'Date is required' })}
             disabled={finalized}
           />
+          {errors.date && <p className="text-danger">{errors.date.message}</p>}
         </Form.Group>
 
         <Form.Group className="mb-3 ms-5" controlId="formDeadline">
           <Form.Label>Deadline</Form.Label>
           <Form.Control
             type="date"
-            {...register('deadline')}
+            {...register('deadline', { required: 'Deadline is required' })}
             disabled={finalized}
           />
+          {errors.deadline && (
+            <p className="text-danger">{errors.deadline.message}</p>
+          )}
         </Form.Group>
       </Stack>
       <Form.Group className="mb-3" controlId="formPaid">
