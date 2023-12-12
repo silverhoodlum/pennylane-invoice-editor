@@ -335,7 +335,7 @@ const InvoiceTemplate = ({
         {completeAddress && (
           <Form.Control
             as="textarea"
-            rows={2}
+            rows={1}
             type="text"
             placeholder="Address"
             value={fullAddress}
@@ -577,33 +577,35 @@ const InvoiceTemplate = ({
           </tbody>
         </Table>
       </Stack>
-      <Stack direction="horizontal">
-        <div className="me-auto">
-          {!invoiceDeleted ? (
-            <ModalStatus
-              message=" Are you sure you want to delete this invoice"
-              btnPrimaryLabel="Delete"
-              btnPrimaryFn={handleDeleteInvoice}
-              btnPrimaryVariant="danger"
-              btnSecondaryLabel="Cancel"
-              btnSecondaryFn={handleCloseDel}
-              show={showDel}
-              hideFn={handleCloseDel}
-            />
-          ) : (
-            <ModalStatus
-              message=" Invoice has been deleted correctly"
-              btnPrimaryLabel="Back to Homepage"
-              btnPrimaryFn={backtoHomepage}
-              show={showDel}
-              hideFn={handleCloseDel}
-            />
-          )}
+      <Stack direction="horizontal" className="mb-5">
+        {action === 'update' && (
+          <div className="me-auto">
+            {!invoiceDeleted ? (
+              <ModalStatus
+                message=" Are you sure you want to delete this invoice"
+                btnPrimaryLabel="Delete"
+                btnPrimaryFn={handleDeleteInvoice}
+                btnPrimaryVariant="danger"
+                btnSecondaryLabel="Cancel"
+                btnSecondaryFn={handleCloseDel}
+                show={showDel}
+                hideFn={handleCloseDel}
+              />
+            ) : (
+              <ModalStatus
+                message=" Invoice has been deleted correctly"
+                btnPrimaryLabel="Back to Homepage"
+                btnPrimaryFn={backtoHomepage}
+                show={showDel}
+                hideFn={handleCloseDel}
+              />
+            )}
 
-          <Button variant="danger" onClick={handleDel}>
-            Delete
-          </Button>
-        </div>
+            <Button variant="danger" onClick={handleDel}>
+              Delete
+            </Button>
+          </div>
+        )}
         {btnLabel && (
           <div className="ms-auto">
             {invoiceUpdated && (
