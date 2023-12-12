@@ -8,6 +8,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "eject_ts": "./bin/eject_ts",
+    "heroku-postbuild": "npm run build",
     "openapi:gen": "yarn -s typegen src/api/schema.yml > src/api/gen/client.d.ts && yarn openapi:convert",
     "openapi:convert": "npx @redocly/openapi-cli bundle ./src/api/schema.yml -o ./src/api/gen/schema.json --format json"
   },
@@ -33,6 +34,7 @@
     "react-select": "5.7.4",
     "react-select-async-paginate": "0.7.3",
     "react-table": "7.8.0",
+    "serve": "^14.2.1",
     "web-vitals": "2.1.0"
   },
   "eslintConfig": {
