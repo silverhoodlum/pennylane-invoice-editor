@@ -14,7 +14,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/invoice/:id" Component={InvoiceShow} />
-            <Route path="/home" Component={InvoicesList} />
+            <Route path="/" Component={InvoicesList} />
             <Route path="/create" Component={InvoiceCreate} />
           </Routes>
         </Router>
