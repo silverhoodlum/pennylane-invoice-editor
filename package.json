@@ -1,6 +1,7 @@
 {
   "name": "jean_test_front",
   "version": "0.1.0",
+  "homepage": ".",
   "private": true,
   "scripts": {
     "start": "HOST=localhost react-scripts start",
